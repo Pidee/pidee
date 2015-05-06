@@ -7,7 +7,7 @@ var wpi = require( 'wiring-pi' );
 // Setup
 // =====
 
-var init = W.composeAsync( setupWiringPi
+var init = W.composeAsync( setupWiringPiPhys
                            //, toggleLeds
                            , breathPwmLeds
                            , readDip
@@ -20,8 +20,8 @@ init({
     buttonPins: [ null ]
 }, makeReporter( 'FINISHED', 'Initialized app' ) );
 
-function setupWiringPi ( app, done ) {
-     wpi.wiringPiSetupPhys();
+function setupWiringPiPhys ( app, done ) {
+    wpi.wiringPiSetupPhys();
     W.call( done, app );
 }
 
@@ -50,7 +50,7 @@ function readDip ( app, done ) {
     app.dipPins.forEach( function ( pinNumber ) { wpi.pinMode( pinNumber, wpi.INPUT ); } );
     app.dipPins.forEach( function ( pinNumber ) { wpi.pullUpDnControl( pinNumber, wpi.PUD_UP ); } );
     report( 'DIP', app.dipPins.map( function ( pinNumber ) { return wpi.digitalRead( pinNumber ); } ).map( function ( v ) { return v ===  1 ? 0 : 1  } ).join( '' ) );
-    report( 'DIP Parsed', app.dipPins.map( function ( pinNumber ) { return wpi.digitalRead( pinNumber ); } ).map( function ( v ) { return v ===  1 ? 0 : 1  } ).join( '' ) );
+    report( 'DIP Parsed', parseInt( app.dipPins.map( function ( pinNumber ) { return wpi.digitalRead( pinNumber ); } ).map( function ( v ) { return v ===  1 ? 0 : 1  } ).join( '' ), 2 ) );
     W.call( done, app );
 }
 
