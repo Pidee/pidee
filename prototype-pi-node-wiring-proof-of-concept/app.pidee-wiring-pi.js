@@ -38,6 +38,8 @@ function toggleLeds ( app, done ) {
 }
 
 function breathPwmLeds ( app, done ) {
+    // wpi.pwmSetMode( wpi.PWM_MODE_MS );
+    // wpi.pwmSetClock( 0 );
     app.pwmLeds.filter( notNull ).forEach( function ( p ) { wpi.pinMode( p, wpi.SOFT_PWM_OUTPUT ); } );
     app.pwmLeds.filter( notNull ).forEach( function ( p ) { wpi.softPwmCreate( p, 100, 100 ); } );
     (function  loop () {
