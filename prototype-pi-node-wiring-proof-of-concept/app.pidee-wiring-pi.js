@@ -11,7 +11,7 @@ var init = W.composeAsync( setupWiringPiPhys
                            , toggleLeds
                            , breathPwmLeds
                            , readDip
-                           //, enableButtons
+                           , enableButtons
                          );
 
 init({
