@@ -8,15 +8,15 @@ var wpi = require( 'wiring-pi' );
 // =====
 
 var init = W.composeAsync( setupWiringPiPhys
-                           //, toggleLeds
+                           , toggleLeds
                            , breathPwmLeds
                            , readDip
                            //, enableButtons
                          );
 
 init({
-    ygrLedPins: [  ], // Final Version Will be: Yellow, Red, Green[ 40, 38, 36 ]
-    pwmLeds: [ 40, 38, 36 ],
+    ygrLedPins: [ 40 ], // Final Version Will be: Yellow, Red, Green[ 40, 38, 36 ]
+    pwmLeds: [ 38, 36 ],
     dipPins: [ 31, 29, 22, 18, 16, 15, 13, 11, 12 ],
     buttonPins: [ null ]
 }, makeReporter( 'FINISHED', 'Initialized app' ) );
