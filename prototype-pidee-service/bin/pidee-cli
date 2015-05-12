@@ -1,0 +1,113 @@
+#!/usr/bin/env node
+// Pidee Cli
+// =========
+// Command line interface to Pidee
+
+// Modules
+// =======
+var W = require( 'w-js' );
+var commander = require( 'commander' );
+var net = require( 'net' );
+
+var options = {
+    socketFilePath: '/tmp/pidee.sock'
+};
+
+
+commander
+    .version( require( './../package' ).version );
+
+commander
+    .command( 'set [color] [value]' )
+    .description( 'set LED (red|yellow|green) to between 0 - 1' )
+    .action( function ( color, value, options ) {
+        if ( typeof color !== 'string' || [ 'red', 'green', 'yellow' ].indexOf( color.toLowerCase() ) === -1 ) {
+            return exitWithError( "Error color not recognised. Must be 'red', 'green' or 'yellow'" );
+        }
+
+        if ( typeof value === 'undefined' ) {
+            return exitWithError( "Error color value not set" );
+        }
+
+        value = parseFloat( value, 10 );
+
+        if ( isNaN( value ) ) {
+            return exitWithError( "Error could not parse value. It should be between 0 and 1" );
+        }
+
+        if ( value < 0 || value > 1 ) {
+            return exitWithError( "Error value should be between 0 and 1" );
+        }
+
+        console.log( 'should be setting', color, 'to', value );
+        
+        makeOpenSocketConnection()
+            .success( W.partialRight( writeAndCloseSocket, color, value ) )
+            .error( function ( err ) {
+                console.log( 'failed to open connection', err );
+            });
+        
+    });
+
+commander
+    .command( 'dip' )
+    .description( 'reads all DIP switch values as an integer value' )
+    .action( function () {
+        console.log( 'should read dip' );
+    });
+
+commander
+    .command( 'switch [switch-number]' )
+    .description( 'reads a switch value as either 0 or 1' )
+    .action( function ( switchNumber ) {
+        
+        if ( typeof switchNumber === 'undefined' ) {
+            return exitWithError( "Error could not parse switch number" );
+        }
+
+        switchNumber = parseFloat( switchNumber, 10 );
+
+        if ( isNaN( switchNumber ) ) {
+            return exitWithError( "Error could not parse value. It should be between 0 and 1" );
+        }
+
+        if ( switchNumber < 0 || switchNumber > 6 ) {
+            return exitWithError( "Error switch number must be between 0 and 6" );
+        }
+        
+        console.log( 'should read dip switch number', switchNumber );
+    });
+
+commander.parse( process.argv );
+
+// Socket Connection
+
+function makeOpenSocketConnection () {
+    return W.promise( function ( resolve, reject ) {
+        var socket;
+        socket = net.createConnection( options.socketFilePath, function () {
+            resolve( socket );
+        });
+        socket.on( 'error', reject );
+    });
+}
+
+function writeAndCloseSocket( socket, messages ) {
+    console.log( 'Remove this. It should at least acknowldge' );
+    // console.log( arguments );
+    var token = Date.now() + Math.random();
+    var packet = token + ' ' + W.rest( W.toArray( arguments ) ).join( ' ' );
+    return W.promise( function ( resolve, reject ) {
+        socket.write( packet, function () {
+            socket.destroy();
+        });
+    });
+}
+
+// Utils
+// =====
+
+function exitWithError ( messages ) {
+    console.error.apply( console, arguments );
+    process.exit( 1 );
+}

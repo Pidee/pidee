@@ -22,7 +22,7 @@ init({
 }, makeReporter( 'FINISHED', 'Initialized app' ) );
 
 function setupWiringPiPhys ( app, done ) {
-    wpi.wiringPiSetupPhys();
+    console.log( 'Wiring Pi Setup', wpi.wiringPiSetupPhys() );
     W.call( done, app );
 }
 

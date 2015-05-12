@@ -7,7 +7,7 @@ var W = require( 'w-js' );
 // Init
 // ====
 
-var init = W.composePromisers( doUnlinkSocketFile, makeServer, bindServer, makeTestClient, makeReporter( 'DOME', 'App created' ) );
+var init = W.composePromisers( doUnlinkSocketFile, makeServer, bindServer, changeSocketPermissions, makeTestClient, makeReporter( 'DOME', 'App created' ) );
 
 // Make
 // ====
@@ -47,6 +47,24 @@ function makeServer ( app ) {
 function bindServer ( app ) {
     return W.promise( function ( resolve, reject ) {
         app.server.listen( app.socketFilePath );
+        resolve( app );
+    });
+}
+
+function changeSocketPermissions ( app ) {
+    return W.promise( function ( resolve, reject ) {
+        fs.chmod( app.socketFilePath, 666, function ( err ) {
+            if ( err ) { return reject( err ); }
+            resolve( app );
+        });
+        resolve( app );
+    });
+}
+
+function dropPrivilages ( app ) {
+    return W.promise( function ( resolve, reject ) {
+        process.setgroups( [ 'pidee' ] );
+        process.setuid( 'pidee' );
         resolve( app );
     });
 }

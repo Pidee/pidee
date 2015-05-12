@@ -1,0 +1,162 @@
+#!/usr/bin/env node
+
+// Pidee Service
+// =============
+// This service is intended to be demoized to run in the background. It monitors the state of the pidee
+
+// Modules
+// =======
+var W = require( 'w-js' );
+var PideeUtils = require( '../libs/pidee-utils' );
+var PideeGpioConnect = require( '../libs/pidee-gpio-connect' );
+var fs = require( 'fs' );
+var net = require( 'net' );
+
+// Make & Init
+// ===========
+
+function make () {
+    return {
+        socketFilePath: '/tmp/pidee.sock'
+    };
+}
+
+var init = W.composePromisers( makePideeGpioConnect,
+                               doDropSuperUserPrivilages,
+                               doRunTestSequence,
+                               doUnlinkSocketFile,
+                               makeServer,
+                               bindServer,
+                               changeSocketPermissions,
+                               PideeUtils.makeReporter( 'Started', 'Pidee service running' ) );
+
+init( make() )
+    .error( function ( err ) {
+        PideeUtils.report( 'Error', 'Failed to create Pidee Service.', err );
+        throw err;
+    })
+    .success( function ( app ) {
+        console.log( app );
+    });
+
+// Promisers
+// =========
+
+function makePideeGpioConnect ( service ) {
+    return W.promise( function ( resolve, reject ) {
+        PideeGpioConnect
+            .init( PideeGpioConnect.make() )
+            .error( reject )
+            .success( function ( pideeGpioConnect ) {
+                service.connect = pideeGpioConnect;
+                resolve( service );
+            });
+    });
+}
+
+function doDropSuperUserPrivilages ( service ) {
+    return W.promise( function ( resolve, reject ) {
+        try {
+            PideeUtils.dropSuperUserPrivilages();
+        } catch ( err ) {
+            return reject( err );
+        }
+        resolve( service );
+    });
+}
+
+function doRunTestSequence ( service ) {
+    return W.promise( function ( resolve, reject ) {
+
+        function makeSetLeds( yellow, green, red ) {
+            return function ( done ) {
+                PideeGpioConnect.setLedState( service.connect, 0, yellow );
+                PideeGpioConnect.setLedState( service.connect, 1, green );
+                PideeGpioConnect.setLedState( service.connect, 2, red );
+                done();
+            };
+        }
+
+        function taskToSequence( y, g, r, delay ) { sequence.then( makeSetLeds( y, g, r ) ).delay( delay ); }
+
+        var tasks = service.connect.config.get( 'enablePwm' )
+                ? [ [ 0,0,0, 100 ], [ 0.2, 0.2, 0.2, 100 ], [ 0.3, 0.3, 0.3, 100 ], [ 0.4, 0.4, 0.4, 100 ], [ 0.5, 0.5, 0.5, 100 ], [ 0.6, 0.6, 0.6, 100 ], [ 0.7, 0.7, 0.7, 100 ], [ 0.8, 0.8, 0.8, 100 ], [ 0.9, 0.9, 0.9, 100 ], [ 0,0,0, 300 ], [ 1,0,0, 100 ], [ 0,1,0, 100 ], [ 0,0,1, 100 ], [ 0,0,0, 300 ], [ 1,0,0, 100 ], [ 0,1,0, 100 ], [ 0,0,1, 100 ], [ 0,0,0, 100 ] ]
+                : [ [ 0,0,0, 100 ], [ 1,1,1, 200 ], [ 0,0,0, 100 ], [ 1,1,1, 200 ], [ 0,0,0, 300 ], [ 1,0,0, 100 ], [ 0,1,0, 100 ], [ 0,0,1, 100 ], [ 0,0,0, 300 ], [ 1,0,0, 100 ], [ 0,1,0, 100 ], [ 0,0,1, 100 ], [ 0,0,0, 0 ] ];
+
+        var sequence = W.sequence();
+        tasks.forEach( function ( task ) { taskToSequence.apply( this, task ); } );
+        sequence.start();
+        
+        resolve( service );
+    });
+}
+
+// Server
+// ------
+
+function doUnlinkSocketFile ( service ) {
+    return W.promise( function ( resolve, reject ) {
+        fs.stat( service.socketFilePath, function( err, stat ) {
+            if ( !err ) {  
+                return fs.unlink( service.socketFilePath, function ( err ) {
+                    if ( err ) { return reject( err );  }
+                    return resolve( service );
+                });
+            }
+            return resolve( service );
+        });
+    });
+}
+
+function makeServer ( service ) {
+    return W.promise( function ( resolve, reject ) {
+        service.server = net.createServer( function( client ) {
+            PideeUtils.report( "CONNECTION", 'New client connection' );
+            client.on( 'data', function ( data ) {
+                PideeUtils.report( 'DATA RECEIVED', data );
+
+                var dataArr = data.toString().split( ' ' );
+                if ( dataArr.length < 2 ) { return; }
+                var token = dataArr[ 0 ];
+                var command = dataArr[ 1 ];
+                var value = dataArr[ 2 ];
+
+                // Leds
+                var colorIdx = [ 'yellow', 'green', 'red' ].indexOf( command.toLowerCase() );
+                
+                if ( colorIdx > -1 ) {
+
+                    value = parseFloat( value, 10 );
+                    if ( isNaN( value ) ) { return; }
+
+                    console.log( 'Value',value, dataArr );
+
+                    PideeGpioConnect.setLedState( service.connect, colorIdx, value );
+                    
+                }
+            });
+        });
+        resolve( service );
+    });
+}
+
+function bindServer ( service ) {
+    return W.promise( function ( resolve, reject ) {
+        service.server.listen( service.socketFilePath );
+        resolve( service );
+    });
+}
+
+function changeSocketPermissions ( service ) {
+    return W.promise( function ( resolve, reject ) {
+        fs.chmod( service.socketFilePath, 666, function ( err ) {
+            if ( err ) { return reject( err ); }
+            resolve( service );
+        });
+        resolve( service );
+    });
+}
+
+
+
+
