@@ -7,15 +7,12 @@ var W = require( 'w-js' );
 // Init
 // ====
 
-var init = W.composePromisers( doUnlinkSocketFile, makeServer, bindServer, makeTestClient );
+var init = W.composePromisers( doUnlinkSocketFile, makeServer, bindServer, makeTestClient, makeReporter( 'DOME', 'App created' ) );
 
 // Make
 // ====
 
 init({ socketFilePath: '/tmp/pidee.sock' })
-    .success( function () {
-        report( 'DONE', 'Created app' );
-    })
     .error( function ( err ) {
         report( 'ERROR', 'Failed to create app', err );
     });
@@ -58,7 +55,7 @@ function makeTestClient ( app ) {
     return W.promise( function ( resolve, reject ) {
         var client = net.createConnection( app.socketFilePath, function () {
             report( 'TEST', 'Text client connected to unix socket' );
-            client.write( 'hello', function () {
+            client.write( 'hello from servers test client', function () {
                 resolve( app );
             });
         });
@@ -75,8 +72,12 @@ function report( status, str ) {
 }
 
 function makeReporter( status, str ) {
-    return function ( app, done ) {
-        report( status, str );
-        W.call( done, app );
+    var reportArgs = arguments;
+    return function () {
+        report.apply( this, reportArgs );
+        var calleeArgs = arguments;
+        return W.promise( function ( resolve, reject ) {
+            resolve.apply( this, calleeArgs );
+        });
     };
 }
