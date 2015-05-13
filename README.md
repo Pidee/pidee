@@ -1,6 +1,6 @@
 ![github-logo](https://cloud.githubusercontent.com/assets/166915/7610161/9b6e283a-f972-11e4-8b32-9b3cbf2e8bc5.png)
 
-# The go to breakout board for the RaspberryPi GPIO with switches, a button and 3 LEDs. #
+# The breakout board for the RaspberryPi with switches, a button and 3 LEDs. #
 
 ## How do you pronounce Pidee? ##
 
