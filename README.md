@@ -34,11 +34,11 @@ Here are some ideas:
 
 We wanted to make a cheap-as-possible, robust and readily available human interface for everyone.
 
-What can't be done with the Raspberry Pi's GPIO? Almost nothing. But so often we found ourselves thinking if only we had a switch, a button or a light to blink attached. That means we might not have needed to plug in a montitor, bring a keyboard, open up terminal or go hunting for the IP Address.
+Almost anything can be done with the Raspberry Pi GPIO. But again and again, we find ourselves wishing there was a switch, a button or a light to blink attached. This could save us plugging in a monitor, bring a keyboard, open up terminal or going hunting for the IP address.
 
-You might be creating an installation with hunderds of raspberry pis and need to give them all a unique ID. Or you might need to boot a different program when you use your raspberry pi in a greenhouse to when you use it in school. Or turn or debug mode. Or maybe you want a button to shutdown raspberry pi cleanly)? Oh wait... always do that anyway.
+You may be creating an installation with hunderds of raspberry pis and need to give them all a unique ID. Or you may need to boot a different program when you use your Raspberry Pi in a greenhouse to when you use it in school. Or you might want to enable a debug mode. Or maybe you just want a button to shutdown raspberry pi cleanly? Oh wait... of course you do that anyway.
 
-With this in mind we wanted to make something cheap. We could have it kicking around or buy in multiples. Something robust. We could use it at home, at work and avoid breadboard botched jobs. Something simple. So kids in schools can jump in and use GPIO right away. Something safe. Set an input to an output and not fry the ou. This is why made the Pidee board and we hope you like it too. 
+With this in mind we wanted to make something cheap. We can have it kicking around or buy in multiples. Something robust. We could use it at home, at work and avoid breadboard botched jobs. Something simple. So kids in schools can jump in and use GPIO right away. Something safe. Set an input to an output and not fry the pi. This is why made the Pidee board and we hope you like it too. 
 
 ## Who makes a Pidee ##
 
