@@ -2,7 +2,7 @@
 
 // Pidee Service
 // =============
-// This service is intended to be demoized to run in the background. It monitors the state of the pidee
+// This service is intended to be demonized to run in the background. It monitors the state of the Pidee
 
 // Modules
 // =======
@@ -32,7 +32,7 @@ var init = W.composePromisers( makePideeGpioConnect,
 
 init( make() )
     .error( function ( err ) {
-        PideeUtils.report( 'Error', 'Failed to create Pidee Service.', err );
+        PideeUtils.report( 'Error', 'Failed to create Pidee service.', err );
         throw err;
     })
     .success( function ( app ) {
