@@ -42,7 +42,7 @@ With this in mind we wanted to make something cheap. We can have it kicking arou
 
 ## Who makes a Pidee? ##
 
-Pidee is a collaborative effort instigated by [Stefan Dzisiewski-Smith](http://www.bycgwtsf.com), [The Workers](http://theworkers.net/) and our friends at [The Hackney Swingers Club](http://hackneyswingersclub.com)
+Pidee is a collaborative effort instigated by [Stefan Dzisiewski-Smith](http://www.bycgwtsf.com), [The Workers](http://theworkers.net/) and our friends at [The Hackney Swingers Club](http://hackneyswingers.club)
 
 ## What's with the extra header pins? ##
 
