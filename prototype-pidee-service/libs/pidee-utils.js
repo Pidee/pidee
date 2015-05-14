@@ -14,7 +14,7 @@ function isSuperUser () {
 
 function dropSuperUserPrivilages () {
     if ( !process.env.SUDO_USER ) {
-        throw new Error( 'Unabled able to get non-sudo user' );
+        throw new Error( 'Unable to get non-sudo user' );
     }
     process.setuid( process.env.SUDO_USER );
 }
@@ -45,7 +45,7 @@ function confirmSuperUserPromise () {
         if ( isSuperUser() ) {
             resolve.apply( this, args );
         } else {
-            reject( new Error( 'Needs to be run a root. Try running with sudo' ) );
+            reject( new Error( 'Needs to be run as root. Try running with sudo' ) );
         }
     });
 }
