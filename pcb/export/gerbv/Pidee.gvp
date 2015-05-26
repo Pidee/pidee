@@ -1,4 +1,5 @@
 (gerbv-file-version! "2.0A")
+(define-layer! 8 (cons 'filename "/Users/stefandz/Documents/Electronics/The Workers/Pidee/pidee/pcb/export/drill/Through.drl")(cons 'visible #f)(cons 'color #(47802 47802 47802))(cons 'attribs (list (list 'autodetect 'Boolean 1) (list 'zero_supression 'Enum 0) (list 'units 'Enum 1) (list 'digits 'Integer 2))))
 (define-layer! 7 (cons 'filename "/Users/stefandz/Documents/Electronics/The Workers/Pidee/pidee/pcb/export/gerbers/TopPaste.gbr")(cons 'visible #t)(cons 'color #(53456 63993 52428)))
 (define-layer! 6 (cons 'filename "/Users/stefandz/Documents/Electronics/The Workers/Pidee/pidee/pcb/export/gerbers/TopMask.gbr")(cons 'visible #t)(cons 'color #(60652 49858 62194)))
 (define-layer! 5 (cons 'filename "/Users/stefandz/Documents/Electronics/The Workers/Pidee/pidee/pcb/export/gerbers/TopDimension.gbr")(cons 'visible #t)(cons 'color #(65021 53970 52942)))
@@ -7,5 +8,5 @@
 (define-layer! 2 (cons 'filename "/Users/stefandz/Documents/Electronics/The Workers/Pidee/pidee/pcb/export/gerbers/Bottom.gbr")(cons 'visible #t)(cons 'color #(49601 0 57568)))
 (define-layer! 1 (cons 'filename "/Users/stefandz/Documents/Electronics/The Workers/Pidee/pidee/pcb/export/gerbers/BoardOutline.gbr")(cons 'visible #t)(cons 'color #(65535 32639 29555)))
 (define-layer! 0 (cons 'filename "/Users/stefandz/Documents/Electronics/The Workers/Pidee/pidee/pcb/export/gerbers/Board.gbr")(cons 'visible #t)(cons 'color #(29555 29555 57054)))
-(define-layer! -1 (cons 'filename "/Users/stefandz/Documents/Electronics/The Workers/Pidee/pidee/pcb/export/gerbv")(cons 'visible #f)(cons 'color #(0 0 0)))
+(define-layer! -1 (cons 'filename "(null)")(cons 'visible #f)(cons 'color #(0 0 0)))
 (set-render-type! 1)
