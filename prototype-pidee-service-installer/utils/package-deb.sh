@@ -64,21 +64,29 @@ function error_exit {
 	tar xzf $tar_file -C $temp_fpm_dir
 
 	# Start FPM
+		# --deb-init "FILEPATH" \
+		# --deb-upstart FILEPATH \
+	pushd $deb_destination_dir
 	fpm \
 		-s dir \
 		-t deb \
-		-a armhf \
+		-a amd64 \
+		--force \
+		--verbose \
 		--name "pidee" \
 		--version "1.0" \
+		--vendor "The Workers" \
 		--url "http://theworkers.net/pidee" \
-		--maintainer "The Workers <pidee@theworkers.net>" \
+		--maintainer "Tommaso Lanza <pidee@theworkers.net>" \
 		--provides "pidee" \
 		--license "MIT" \
 		--description "Support package for the Pidee Raspberry Pi add-on board" \
-		$temp_fpm_dir/usr=/
+		-C $temp_fpm_dir
+	popd
 
 	# Cleanup after yourself!
-	rm -rf $temp_fpm_dir $(dirname "$tar_file")
+	# rm -rf $temp_fpm_dir $(dirname "$tar_file")
+	open $temp_fpm_dir
 
 	>&2 echo "—— Did you a Debian package!"
 } > /dev/null
