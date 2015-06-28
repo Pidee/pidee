@@ -1,0 +1,4 @@
+#!/bin/sh
+
+userdel --remove --force pidee
+groupdel pidee

@@ -19,8 +19,10 @@ PIDEE=/usr/sbin/pidee-service
 RUNDIR=/run/pidee
 EXTRAOPTS=
 
-export NODE_PATH="/usr/lib/pidee/pidee/node_modules:$NODE_PATH"
-export NODE_PATH="/usr/lib/pidee/pidee/libs:$NODE_PATH"
+## These lines can be useful when wishing to expose require() paths
+## which would otherwise be unreachable to relocated node scripts
+# export NODE_PATH="/usr/lib/pidee/pidee/node_modules:$NODE_PATH"
+# export NODE_PATH="/usr/lib/pidee/pidee/libs:$NODE_PATH"
 
 # Check if pidee is where it's supposed to be. Bail out if not.
 test -x $PIDEE || exit 0
@@ -47,7 +49,7 @@ check_pidee_config()
 {
 	# Exit if config check fails
 	# TODO: check all configs.js provide a function that returns an object
-	$NODE $PIDEE -c -f "$CONFIG" >/dev/null
+	$PIDEE -c -f "$CONFIG" >/dev/null
 	if [ $? -eq 1 ]; then
 		log_end_msg 1
 		exit 1
@@ -64,8 +66,12 @@ pidee_start()
 	# check_pidee_config
 
 	# User start-stop-daemon to start the pidee-service as a deamon
-	start-stop-daemon --quiet --oknodo --start --pidfile "$PIDFILE" \
-		--exec $NODE $PIDEE -- -f "$CONFIG" -D -p "$PIDFILE" \
+	start-stop-daemon \
+		--quiet \
+		--oknodo \
+		--start \
+		--pidfile "$PIDFILE" \
+		--exec $PIDEE -- -f "$CONFIG" -D -p "$PIDFILE" \
 		$EXTRAOPTS || return 2
 	return 0
 }
@@ -81,8 +87,13 @@ pidee_stop()
 	# Try to stop the daemon with --stop
 	ret=0
 	for pid in $(cat $PIDFILE); do
-		start-stop-daemon --quiet --oknodo --stop \
-			--retry 5 --pid $pid --exec $NODE $PIDEE || ret=$?
+		start-stop-daemon \
+			--quiet \
+			--oknodo \
+			--stop \
+			--retry 5 \
+			--pid $pid \
+			--exec $PIDEE || ret=$?
 	done
 
 	# If start-stop-daemon exits 0, delete the pidfile
@@ -97,7 +108,7 @@ pidee_reload()
 
 	# check_pidee_config
 
-	$NODE $PIDEE -f "$CONFIG" -p $PIDFILE -D $EXTRAOPTS -sf $(cat $PIDFILE) \
+	$PIDEE -f "$CONFIG" -p $PIDFILE -D $EXTRAOPTS -sf $(cat $PIDFILE) \
 		|| return 2
 	return 0
 }

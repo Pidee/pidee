@@ -23,6 +23,10 @@
 ## Enable extended globbing (eg: dir/{a,b}/*)
 shopt -s extglob;
 
+# Get the absolute parent dir of this file
+# http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in?page=1&tab=votes#tab-top
+this_script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
 ## error_exit "$LINENO: An error has occurred."
 function error_exit {
 	echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2 && exit 1;
@@ -60,17 +64,20 @@ function error_exit {
 	## Touch pidee.conf in /etc
 	cp -r $temp_dir/usr/lib/pidee/pidee/conf/* $temp_dir/etc/pidee
 
-	## Make the node scripts executable (possibly not needed)
-	chmod +x $temp_dir/usr/lib/pidee/pidee/bin/*
-
 	## Symlink bin/* to sbin/*
-	>&2 echo "—— Symlink bin/* to sbin/*"
-	pushd $temp_dir/usr/sbin
-	ln -nsf ../lib/pidee/pidee/bin/pidee-service pidee-service
-	popd
-	pushd $temp_dir/usr/bin
-	ln -nsf ../lib/pidee/pidee/bin/pidee-cli pidee
-	popd
+	# >&2 echo "—— Symlink bin/* to sbin/*"
+	# pushd $temp_dir/usr/sbin
+	# ln -nsf ../lib/pidee/pidee/bin/pidee-service pidee-service
+	# popd
+	# pushd $temp_dir/usr/bin
+	# ln -nsf ../lib/pidee/pidee/bin/pidee-cli pidee
+	# popd
+
+	## Copy proxy bin(s) to destination
+	cp -r $this_script_dir/assets/pidee-cli-proxy.js $temp_dir/usr/bin/pidee
+	cp -r $this_script_dir/assets/pidee-service-proxy.js $temp_dir/usr/sbin/pidee-service
+	chmod +x $temp_dir/usr/bin/pidee
+	chmod +x $temp_dir/usr/sbin/pidee-service
 
 	## Copy README.md to /usr/doc/pidee/README.md
 	>&2 echo "—— Copy README"
