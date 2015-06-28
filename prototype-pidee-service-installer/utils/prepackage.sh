@@ -40,48 +40,57 @@ function error_exit {
 
 	## Create the package's directory tree
 	>&2 echo "—— Create directory tree"
-	mkdir -p $temp_dir/usr/{local/{lib/{node,pidee},bin,sbin,share/man/{man1,man8}},share/doc/pidee}
+	mkdir -p $temp_dir/etc/pidee
+	mkdir -p $temp_dir/usr/bin
+	mkdir -p $temp_dir/usr/sbin
+	mkdir -p $temp_dir/usr/lib/pidee/node
+	mkdir -p $temp_dir/usr/lib/pidee/pidee
+	mkdir -p $temp_dir/usr/share/doc/pidee
+	mkdir -p $temp_dir/usr/share/man/man1
+	mkdir -p $temp_dir/usr/share/man/man8
 
-	## Copy Pidee source files to /usr/local/lib/pidee
+	## Copy Pidee source files to /usr/lib/pidee/pidee
 	>&2 echo "—— Copy source files"
-	cp -r $pidee_source_dir/* $temp_dir/usr/local/lib/pidee
+	cp -r $pidee_source_dir/* $temp_dir/usr/lib/pidee/pidee
 	pushd $temp_dir
 	find . -name ".npm-debug.log" -print0 | xargs -0 rm -f
 	find . -name ".DS_Store" -print0 | xargs -0 rm -f
 	popd
 
+	## Touch pidee.conf in /etc
+	cp -r $temp_dir/usr/lib/pidee/pidee/conf/* $temp_dir/etc/pidee
+
 	## Make the node scripts executable (possibly not needed)
-	chmod +x $temp_dir/usr/local/lib/pidee/bin/*
+	chmod +x $temp_dir/usr/lib/pidee/pidee/bin/*
 
 	## Symlink bin/* to sbin/*
 	>&2 echo "—— Symlink bin/* to sbin/*"
-	pushd $temp_dir/usr/local/sbin
-	ln -s ../lib/pidee/bin/pidee-service pidee-service
+	pushd $temp_dir/usr/sbin
+	ln -nsf ../lib/pidee/pidee/bin/pidee-service pidee-service
 	popd
-	pushd $temp_dir/usr/local/bin
-	ln -s ../lib/pidee/bin/pidee-cli pidee
+	pushd $temp_dir/usr/bin
+	ln -nsf ../lib/pidee/pidee/bin/pidee-cli pidee
 	popd
 
-
-	## Copy README.md to /usr/local/doc/pidee/README.md
+	## Copy README.md to /usr/doc/pidee/README.md
 	>&2 echo "—— Copy README"
-	cp -r $temp_dir/usr/local/lib/pidee/README* $temp_dir/usr/share/doc/pidee
+	cp -r $temp_dir/usr/lib/pidee/pidee/README* $temp_dir/usr/share/doc/pidee
 
 	## Create and copy manpages
 	>&2 echo "—— Manpages…"
 	pushd $pidee_source_dir/man
-	md2man-roff pidee.1.md > $temp_dir/usr/local/share/man/man1/pidee.1
-	md2man-roff pidee-service.8.md > $temp_dir/usr/local/share/man/man8/pidee-service.8
+	md2man-roff pidee.1.md > $temp_dir/usr/share/man/man1/pidee.1
+	md2man-roff pidee-service.8.md > $temp_dir/usr/share/man/man8/pidee-service.8
 	popd
 
 	## Download, untar and copy Node JS from Joyent. Last precompiled Raspberry Pi version is 0.10.28. Then they stopped.
 	>&2 echo "—— Download Node from Joyent"
 	node_temp_dir=$( mktemp -dt "$(basename -- "$0").$$.XXXX" )
 	pushd $node_temp_dir
-	node_version="v0.10.28"
-	# node_version="v0.12.5"
-	node_architecture="linux-arm-pi"
-	# node_architecture="linux-x64"
+	# node_version="v0.10.28"
+	node_version="v0.12.5"
+	# node_architecture="linux-arm-pi"
+	node_architecture="linux-x64"
 	wget \
 		--server-response=off \
 		--no-verbose \
@@ -90,7 +99,7 @@ function error_exit {
 		"http://nodejs.org/dist/$node_version/node-$node_version-$node_architecture.tar.gz"
 	mkdir -p node
 	tar xf node.tar.gz --directory node --strip 1
-	cp -r node/* $temp_dir/usr/local/lib/node
+	cp -r node/* $temp_dir/usr/lib/pidee/node
 	popd
 
 

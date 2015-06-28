@@ -64,8 +64,6 @@ function error_exit {
 	tar xzf $tar_file -C $temp_fpm_dir
 
 	# Start FPM
-		# --deb-init "FILEPATH" \
-		# --deb-upstart FILEPATH \
 	pushd $deb_destination_dir
 	fpm \
 		-s dir \
@@ -81,12 +79,14 @@ function error_exit {
 		--provides "pidee" \
 		--license "MIT" \
 		--description "Support package for the Pidee Raspberry Pi add-on board" \
+		--deb-init $this_script_dir/../pidee.init \
+		--after-install $this_script_dir/../postinst \
+		--before-install $this_script_dir/../preinst \
 		-C $temp_fpm_dir
 	popd
 
 	# Cleanup after yourself!
-	# rm -rf $temp_fpm_dir $(dirname "$tar_file")
-	open $temp_fpm_dir
+	rm -rf $temp_fpm_dir $(dirname "$tar_file")
 
 	>&2 echo "—— Did you a Debian package!"
 } > /dev/null
