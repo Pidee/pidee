@@ -1,4 +1,6 @@
 #!/bin/sh
 
-# Stop pidee service
-service pidee stop
+{
+	# Stop pidee service
+	service pidee stop
+} &> /dev/null

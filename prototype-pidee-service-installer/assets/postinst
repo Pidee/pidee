@@ -1,8 +1,10 @@
 #!/bin/sh
 
-# Add a pidee system user
-# http://unix.stackexchange.com/questions/47880/how-debian-package-should-create-user-accounts
-adduser --system --no-create-home --quiet pidee
+{
+	# Add a pidee system user
+	# http://unix.stackexchange.com/questions/47880/how-debian-package-should-create-user-accounts
+	adduser --system --no-create-home --quiet pidee
+} &> /dev/null
 
 # Start service
-service pidee start
+service pidee start &> /dev/null

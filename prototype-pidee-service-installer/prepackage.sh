@@ -64,15 +64,6 @@ function error_exit {
 	## Touch pidee.conf in /etc
 	cp -r $temp_dir/usr/lib/pidee/pidee/conf/* $temp_dir/etc/pidee
 
-	## Symlink bin/* to sbin/*
-	# >&2 echo "—— Symlink bin/* to sbin/*"
-	# pushd $temp_dir/usr/sbin
-	# ln -nsf ../lib/pidee/pidee/bin/pidee-service pidee-service
-	# popd
-	# pushd $temp_dir/usr/bin
-	# ln -nsf ../lib/pidee/pidee/bin/pidee-cli pidee
-	# popd
-
 	## Copy proxy bin(s) to destination
 	cp -r $this_script_dir/assets/pidee-cli-proxy.js $temp_dir/usr/bin/pidee
 	cp -r $this_script_dir/assets/pidee-service-proxy.js $temp_dir/usr/sbin/pidee-service
@@ -94,10 +85,10 @@ function error_exit {
 	>&2 echo "—— Download Node from Joyent"
 	node_temp_dir=$( mktemp -dt "$(basename -- "$0").$$.XXXX" )
 	pushd $node_temp_dir
-	# node_version="v0.10.28"
-	node_version="v0.12.5"
-	# node_architecture="linux-arm-pi"
-	node_architecture="linux-x64"
+	node_version="v0.10.28"
+	node_architecture="linux-arm-pi"
+	# node_version="v0.12.5"
+	# node_architecture="linux-x64"
 	wget \
 		--server-response=off \
 		--no-verbose \
