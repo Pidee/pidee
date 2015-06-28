@@ -5,11 +5,11 @@
 # Required-Stop:     $local_fs $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: fast and reliable load balancing reverse proxy
+# Short-Description: GPIO service for the Pidee Raspberry Pi board add-on
 # Description:       This file should be used to start and stop pidee.
 ### END INIT INFO
 
-# Author: Arnaud Cornet <acornet@debian.org>
+# Author: Tommaso Lanza <pidee@theworkers.net>
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 PIDFILE=/var/run/pidee.pid
