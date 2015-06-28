@@ -91,9 +91,9 @@ function error_exit {
 	popd
 
 	# Cleanup after yourself!
-	open $temp_fpm_dir
-	open $(dirname "$tar_file")
-	# rm -rf $temp_fpm_dir $(dirname "$tar_file")
+	# open $temp_fpm_dir
+	# open $(dirname "$tar_file")
+	rm -rf $temp_fpm_dir $(dirname "$tar_file")
 
 	>&2 echo "—— Did you a Debian package!"
 } > /dev/null
