@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Add a pidee system user
+# http://unix.stackexchange.com/questions/47880/how-debian-package-should-create-user-accounts
+adduser --system --no-create-home --quiet pidee
+
+# Create symlinks in /bin /sbin if they don't exisit
+pushd /usr/bin
+ln --force --symbolic --no-dereference ../lib/pidee/pidee/bin/pidee-cli pidee
+popd
+pushd /usr/sbin
+ln --force --symbolic --no-dereference ../lib/pidee/pidee/bin/pidee-service pidee-service
+popd
+
+# Start service
+service pidee start
