@@ -20,19 +20,14 @@ function dropSuperUserPrivilages () {
     process.setuid( process.env.SUDO_USER );
 }
 
-function getUIDFromUsername ( username, callback ) {
-    if (typeof username === 'function') {
-        callback = username;
-        username = undefined;
-    }
-    username = username || 'pidee';
-    callback = callback || function () {};
-
-    var child = exec('id -u ' + username, {uid: 501}, function ( err, stdout, stderr ) {
-        if ( err ) {
-            return callback( err );
-        }
-        callback( null, stdout );
+function getUIDFromUsername ( username ) {
+    return W.promise( function ( resolve, reject ) {
+        var child = exec( 'id -u ' + username, { uid: 501 }, function ( err, stdout, stderr ) {
+            if ( err ) {
+                return reject( err );
+            }
+            resolve( stdout );
+        });
     });
 }
 
@@ -55,19 +50,6 @@ function makeReporter( status, str ) {
 
 // Promisers
 // ---------
-
-function getUIDFromUsernamePromise ( username ) {
-    username = username || 'pidee';
-    var args = arguments;
-    return W.promise( function ( resolve, reject ) {
-        getUIDFromUsername( username, function (err, stdout) {
-            if ( err ) {
-                return reject( err );
-            }
-            resolve.apply( this, args );
-        });
-    });
-}
 
 function confirmSuperUserPromise () {
     var args = arguments;
@@ -99,8 +81,8 @@ function promiseWrap( fn ) {
 module.exports = {
     isSuperUser: isSuperUser,
     dropSuperUserPrivilages: dropSuperUserPrivilages,
+    getUIDFromUsername: getUIDFromUsername,
     confirmSuperUserPromise: confirmSuperUserPromise,
-    getUIDFromUsernamePromise: getUIDFromUsernamePromise,
     makeReporter: makeReporter,
     report: report,
     promiseWrap: promiseWrap
