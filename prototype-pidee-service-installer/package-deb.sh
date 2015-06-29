@@ -62,7 +62,8 @@ function error_exit {
 	>&2 echo "—— Checking script dependencies…"
 	hash fpm 2>/dev/null || { printf >&2 "Ruby gem \"fpm\" is required, but it's not installed. Aborting. Please run:\n$ gem install fpm\n"; exit 1; }
 	if [[ $(uname -s) == "Darwin" ]]; then
-		hash gtar 2>/dev/null || { printf >&2 "\"gtar\" is required, but it's not installed. It's available in brew as \"gnu-tar\" if you are on OS X\n"; exit 1; }
+		hash gtar 2>/dev/null || { printf >&2 "\"gtar\" is required, but it's not installed. It's available in brew as \"gnu-tar\" if you are using OS X\n"; exit 1; }
+		hash dpkg 2>/dev/null || { printf >&2 "\"dpkg\" is required, but it's not installed. It's available in brew as \"dpkg\" if you are using OS X\n"; exit 1; }
 	fi
 
 	## Temporary work dir
@@ -99,13 +100,21 @@ function error_exit {
 		-C $temp_fpm_dir
 	popd
 
+	## Create a package index file Packages.gz
+	>&2 echo "—— Generating package index file…"
+	pushd $deb_destination_dir
+	dpkg-scanpackages . > Packages &> /dev/null
+	gzip --best --force --keep Packages
+	popd
+
 	## Cleanup after yourself!
 	# open $temp_fpm_dir
 	# open $(dirname "$tar_file")
 	>&2 echo "—— Cleaning temp dirs…"
 	rm -rf $temp_fpm_dir $(dirname "$tar_file")
 
-	>&2 echo "—— Package created in $deb_destination_dir"
+	>&2 echo "—— .deb package created in $deb_destination_dir"
+	>&2 echo "—— Packages.gz created in $deb_destination_dir"
 } > /dev/null
 
 exit 0
