@@ -103,7 +103,7 @@ function error_exit {
 	## Create a package index file Packages.gz
 	>&2 echo "—— Generating package index file…"
 	pushd $deb_destination_dir
-	dpkg-scanpackages . > Packages &> /dev/null
+	dpkg-scanpackages . 1> Packages 2> /dev/null
 	gzip --best --force --keep Packages
 	popd
 
