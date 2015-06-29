@@ -41,7 +41,7 @@ function error_exit {
 	hash md2man-roff 2>/dev/null || { printf >&2 "Ruby gem \"md2man\" is required, but it's not installed. Aborting. Please run:\n$ gem install md2man\n"; exit 1; }
 
 	## Set the pidee service dir to argument or default
-	pidee_source_dir=${1:-~/Sources/pidee/prototype-pidee-service}
+	pidee_source_dir=${1:-$this_script_dir/../prototype-pidee-service}
 
 	## Get a temporary directory to work in
 	temp_dir=$( mktemp -dt "$(basename -- "$0").$$.XXXX" )

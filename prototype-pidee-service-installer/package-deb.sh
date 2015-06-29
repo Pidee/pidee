@@ -61,7 +61,9 @@ function error_exit {
 	## Check core dependency
 	>&2 echo "—— Checking script dependencies…"
 	hash fpm 2>/dev/null || { printf >&2 "Ruby gem \"fpm\" is required, but it's not installed. Aborting. Please run:\n$ gem install fpm\n"; exit 1; }
-	hash gtar 2>/dev/null || { printf >&2 "\"gtar\" is required, but it's not installed. It's available in brew as \"gnu-tar\" if you are on OS X\n"; exit 1; }
+	if [[ $(uname -s) == "Darwin" ]]; then
+		hash gtar 2>/dev/null || { printf >&2 "\"gtar\" is required, but it's not installed. It's available in brew as \"gnu-tar\" if you are on OS X\n"; exit 1; }
+	fi
 
 	## Temporary work dir
 	temp_fpm_dir=$( mktemp -dt "$(basename -- "$0").$$.XXXX" )
