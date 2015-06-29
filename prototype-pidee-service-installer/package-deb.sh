@@ -27,10 +27,11 @@ deb_destination_dir=${1:-./~debs}
 # http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in?page=1&tab=votes#tab-top
 this_script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+## Get the script name. Returns the name of the parent script when running in a subshell
 script_name=$(basename $0)
 
 ## Run ./prepackage.sh and store location of pidee.tar.gz file
-tar_file=$(source $this_script_dir/prepackage.sh)
+tar_file=$(source $this_script_dir/prepackage.sh) &> /dev/null || exit 1;
 
 ## Exit with error and line number
 # error_exit "$LINENO: An error has occurred."
