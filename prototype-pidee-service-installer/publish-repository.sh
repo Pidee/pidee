@@ -34,7 +34,7 @@ aptly repo add -force-replace pidee-jessie-main  ./~debs
 aptly repo add -force-replace pidee-stretch-main ./~debs
 popd
 
-## If things were too simple, we can improve complicatin with shapshots
+## I you feel things are too simple, you can improve complication with snapshots
 # aptly snapshot create pidee-1.0.1-wheezy-main from repo pidee-wheezy-main
 # aptly snapshot create pidee-1.0.1-jessie-main from repo pidee-jessie-main
 # aptly snapshot create pidee-1.0.1-stretch-main from repo pidee-stretch-main
