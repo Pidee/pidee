@@ -22,7 +22,7 @@ function dropSuperUserPrivilages () {
 
 function getUIDFromUsername ( username ) {
     return W.promise( function ( resolve, reject ) {
-        var child = exec( 'id -u ' + username, { uid: 501 }, function ( err, stdout, stderr ) {
+        var child = exec( 'id -u ' + username, function ( err, stdout, stderr ) {
             if ( err ) {
                 return reject( err );
             }
