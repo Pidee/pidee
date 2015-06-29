@@ -10,9 +10,10 @@ There are various ways to install the Pidee service. If you are unsure, use the 
 
 To get started, edit the file  in `/etc/apt/sources.list` and paste or type the following:
 
+If necessary, replace `wheezy` with the name of your Raspbian distribution.
+
 ```plain
-deb http://pidee.herokuapp.com/raspbian wheezy main contrib non-free
-deb-src http://pidee.herokuapp.com/raspbian wheezy main contrib non-free
+deb http://pidee.theworkers.net/raspbian wheezy main
 ```
 ### Via remote shell script
 
@@ -24,7 +25,7 @@ http://stackoverflow.com/questions/5735666/execute-bash-script-from-url
 -->
 
 ```shell
-bash <(wget -q https://pidee.herokuapp.com/bootstrap -O -)
+bash <(wget -q https://pidee.theworkers.net/bootstrap.sh -O -)
 ```
 
 ### By manually downloading and installing the package with apt-get
@@ -36,7 +37,7 @@ from https://raspberry-hosting.com/en/faq/where-can-i-find-actual-haproxy-and-ke
 ```shell
 # as root
 $ apt-get update && apt-get -y upgrade
-$ wget https://pidee.herokuapp.com/pidee-raspberry-pi/pidee_1.0.0_armhf.deb
+$ wget http://pidee.theworkers.net/raspbian/pool/main/p/pidee/pidee_1.0.0_armhf.deb
 $ dpkg -i ./pidee_1.0.0_armhf.deb
 $ /etc/init.d/pidee restart
 ```
