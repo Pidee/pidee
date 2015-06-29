@@ -85,7 +85,7 @@ function error_exit {
 		--force \
 		--verbose \
 		--name "pidee" \
-		--version "1.0.0" \
+		--version "1.0.2" \
 		--vendor "The Workers" \
 		--url "http://theworkers.net/pidee" \
 		--maintainer "Tommaso Lanza <pidee@theworkers.net>" \
