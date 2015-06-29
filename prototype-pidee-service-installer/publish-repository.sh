@@ -8,10 +8,12 @@
 ## On the client:
 ## $ wget -qO - http://pidee.theworkers.net/pidee@theworkers.net.gpg.key | sudo apt-key add -
 
+## Note add a ~passphrase file (text file with your password) to unlock gpg
+
 ## Enable extended globbing (eg: dir/{a,b}/*)
 shopt -s extglob;
 
-hash aptlsy 2>/dev/null || { printf >&2 "\"aptly\" is required. See http://aptly.info or \`brew install aptly\`. Aborting.\n"; exit 1; }
+hash aptly 2>/dev/null || { printf >&2 "\"aptly\" is required. See http://aptly.info or \`brew install aptly\`. Aborting.\n"; exit 1; }
 
 # Get the absolute parent dir of this file
 # http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in?page=1&tab=votes#tab-top
