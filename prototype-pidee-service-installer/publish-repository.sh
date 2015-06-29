@@ -28,10 +28,12 @@ aptly repo create -distribution=jessie  -component=main pidee-jessie-main 2> /de
 aptly repo create -distribution=stretch -component=main pidee-stretch-main 2> /dev/null
 
 ## Gobble the .deb files and add-replace to the repos
+## pass -force-replace to replace all debs:
+## aptly repo add -force-replace pidee-wheezy-main  ./~debs
 pushd $this_script_dir
-aptly repo add -force-replace pidee-wheezy-main  ./~debs
-aptly repo add -force-replace pidee-jessie-main  ./~debs
-aptly repo add -force-replace pidee-stretch-main ./~debs
+aptly repo add pidee-wheezy-main  ./~debs
+aptly repo add pidee-jessie-main  ./~debs
+aptly repo add pidee-stretch-main ./~debs
 popd
 
 ## I you feel things are too simple, you can improve complication with snapshots

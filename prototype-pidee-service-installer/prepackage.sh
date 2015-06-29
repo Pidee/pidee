@@ -88,27 +88,17 @@ function error_exit {
 	popd
 
 	## Download, untar and copy Node JS from Joyent. Last precompiled Raspberry Pi version is 0.10.28. Then they stopped.
-	>&2 echo "—— Downloading Node from Joyent…"
+	>&2 echo "—— Unpacking node_armhf tarball…"
 	node_temp_dir=$( mktemp -dt "$(basename -- "$0").$$.XXXX" )
 	pushd $node_temp_dir
-	node_version="v0.10.28"
-	node_architecture="linux-arm-pi"
-	# node_version="v0.12.5"
-	# node_architecture="linux-x64"
-	wget \
-		--server-response=off \
-		--no-verbose \
-		--quiet \
-		--output-document="node.tar.gz" \
-		"http://nodejs.org/dist/$node_version/node-$node_version-$node_architecture.tar.gz"
 	mkdir -p node
-	tar xf node.tar.gz --directory node --strip 1
+	tar xf $this_script_dir/assets/node_armhf.tar.gz --directory node --strip 1
 	cp -r node/* $temp_dir/usr/lib/pidee/node
 	popd
 
 
 	## Tarball it!
-	>&2 echo "—— Creating tarball…"
+	>&2 echo "—— Creating pidee tarball…"
 	archive_dir=$( mktemp -dt "$(basename -- "$0").$$.XXXX" )
 	pushd $temp_dir
 	tar czf $archive_dir/pidee.tar.gz .
