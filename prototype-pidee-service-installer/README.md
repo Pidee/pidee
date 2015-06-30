@@ -15,6 +15,29 @@ If necessary, replace `wheezy` with the name of your Raspbian distribution.
 ```plain
 deb http://pidee.theworkers.net/raspbian wheezy main
 ```
+If you don't know how, you can simply copy-paste the following in the terminal:
+
+```shell
+sudo echo "deb http://pidee.theworkers.net/raspbian wheezy main" >> /etc/apt/sources.list
+```
+
+Then add the GPG key, so you can have some confidence that the packages come from the correct server. Again, copy-paste the following in the terminal:
+
+```shell
+wget -qO - http://pidee.theworkers.net/pidee@theworkers.net.gpg.key | sudo apt-key add -
+```
+
+The above downloads (with `wget`) our public key ([just a text file](http://pidee.theworkers.net/pidee@theworkers.net.gpg.key)) and calls the Debian/Raspbian command `apt-key add` (with `sudo` and getting the key from the result of `wget`)
+
+Once you are done with the steps above, run:
+
+```shell
+sudo apt-get update
+sudo apt-get install pidee
+```
+
+Wait a little and enjoy!
+
 ### Via remote shell script
 
 Alternatively you can run the following line in your console
