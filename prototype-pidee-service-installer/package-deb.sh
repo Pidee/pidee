@@ -55,6 +55,8 @@ function error_exit {
 		esac
 	done
 
+	>&2 echo "$package_version"
+
 	## Check args
 	# stub
 
@@ -85,7 +87,7 @@ function error_exit {
 		--force \
 		--verbose \
 		--name "pidee" \
-		--version "1.0.4" \
+		--version "$package_version" \
 		--vendor "The Workers" \
 		--url "http://theworkers.net/pidee" \
 		--maintainer "Tommaso Lanza <pidee@theworkers.net>" \
