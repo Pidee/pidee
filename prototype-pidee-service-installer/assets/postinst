@@ -45,7 +45,7 @@ case "$1" in
         pidof_systemd=$(pidof systemd && echo 1 || echo 0) &> /dev/null
         
         # Check if we have systemd
-        if [ $grep_systemd -eq 1 ] || [ $pidof_systemd -eq 1 ]; then
+        if [ "$grep_systemd" = "1" ] || [ "$pidof_systemd" = "1" ]; then
             # TODO: should we check for [ hash systemctl 2> /dev/null ] first?
 
             # Symlink pidee.service to /etc/systemd/system/pidee.service

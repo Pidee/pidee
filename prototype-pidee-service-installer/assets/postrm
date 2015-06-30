@@ -30,11 +30,11 @@ case "$1" in
         pidof_systemd=$(pidof systemd && echo 1 || echo 0) &> /dev/null
 
         # Check if we have systemd
-        if [ $grep_systemd -eq 1 ] || [ $pidof_systemd -eq 1 ]; then
+        if [ "$grep_systemd" = "1" ] || [ "$pidof_systemd" = "1" ]; then
             # TODO: should we check for [ hash systemctl 2> /dev/null ] first?
 
             # Check if we are actually uninstalling or just upgrading
-            if [ $1 != upgrade ]; then
+            if [ "$1" != "upgrade" ]; then
                 # Disable the service
                 systemctl disable pidee
 
@@ -47,7 +47,7 @@ case "$1" in
         # Or use System 5 init
         else
             # Check if we are actually uninstalling or just upgrading
-            if [ $1 != upgrade ]; then
+            if [ "$1" != "upgrade" ]; then
 
                 # Remove from boot rc.d and silence errors (and stdout) if already installed
                 update-rc.d -f pidee remove 2> /dev/null
