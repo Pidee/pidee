@@ -77,7 +77,7 @@ function error_exit {
 	chmod +x $temp_dir/usr/sbin/pidee-service
 
 	## Copy init and service scripts to destination (isntall scripts will symlink later into canonical paths)
-	>&2 echo "—— Copying proxy binaries…"
+	>&2 echo "—— Copying init and service scripts…"
 	cp -r $this_script_dir/assets/pidee.init $temp_dir/usr/lib/pidee/pidee.init
 	cp -r $this_script_dir/assets/pidee.service $temp_dir/usr/lib/pidee/pidee.service
 	chmod 755 $temp_dir/usr/lib/pidee/pidee.init
