@@ -39,6 +39,8 @@ case "$1" in
 
                 # Symlink pidee.service to /etc/systemd/system/pidee.service
                 rm -f /etc/systemd/system/pidee.service
+
+                exit 0
             fi
 
         # Or use System 5 init
@@ -50,6 +52,8 @@ case "$1" in
 
                 # Remove symlink /etc/init.d/pidee
                 rm -f /etc/init.d/pidee
+
+                exit 0
             fi
         fi
     ;;

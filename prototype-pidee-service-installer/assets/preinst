@@ -35,6 +35,8 @@ case "$1" in
             if [ $1 = upgrade ]; then
                 ## Stop the service
                 systemctl stop pidee 2> /dev/null
+
+                exit 0
             fi
 
         ## Or use System 5 init
@@ -43,6 +45,8 @@ case "$1" in
             if [ -f /etc/init.d/pidee ];
             then
                 service pidee stop
+
+                exit 0
             fi
         fi
     ;;
