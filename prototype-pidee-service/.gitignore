@@ -1,0 +1,3 @@
+# We need WiringPi precompiled in the distribution
+node_modules/*
+!node_modules/wiring-pi
