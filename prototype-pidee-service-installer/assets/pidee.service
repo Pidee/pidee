@@ -1,0 +1,10 @@
+[Service]
+ExecStart=/usr/lib/pidee/node/bin/node /usr/sbin/pidee-service
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=pidee
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

@@ -17,10 +17,33 @@ set -e
 
 case "$1" in
     install|upgrade)
-        # Stop pidee service
-        if [ -f /etc/init.d/pidee ];
-        then
-            service pidee stop
+
+        ## Below two methods to sniff for systemd being in use
+        ## 1 = good
+        ## 0 = bad
+        grep_systemd=$(sudo stat /proc/1/exe | grep -cim1 systemd)
+        pidof_systemd=$(pidof systemd && echo 1 || echo 0)
+
+        ## Check if we are using systemd
+        if [ $grep_systemd = 1 ] || [ $pidof_systemd = 1 ]; then
+            ## TODO: should we check for [ hash systemctl 2> /dev/null ] first?
+
+            ## Grep list of available .service(s)
+            # pidee_was_here=$(systemctl list-units | grep -cim1 pidee)
+
+            # if [ $pidee_was_here = 1 ]; then
+            if [ $1 = upgrade ]; then
+                ## Stop the service
+                systemctl stop pidee 2> /dev/null                
+            fi
+
+        ## Or use System 5 init
+        else
+            ## Stop pidee daemon if it was already installed
+            if [ -f /etc/init.d/pidee ];
+            then
+                service pidee stop
+            fi
         fi
     ;;
 

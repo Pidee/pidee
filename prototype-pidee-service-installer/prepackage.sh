@@ -76,6 +76,12 @@ function error_exit {
 	chmod +x $temp_dir/usr/bin/pidee
 	chmod +x $temp_dir/usr/sbin/pidee-service
 
+	## Copy init and service scripts to destination (isntall scripts will symlink later into canonical paths)
+	>&2 echo "—— Copying proxy binaries…"
+	cp -r $this_script_dir/assets/pidee.init $temp_dir/usr/lib/pidee/pidee.init
+	cp -r $this_script_dir/assets/pidee.service $temp_dir/usr/lib/pidee/pidee.service
+	chmod 755 $temp_dir/usr/lib/pidee/pidee.init
+
 	## Copy README.md to /usr/doc/pidee/README.md
 	>&2 echo "—— Copying docs…"
 	cp -r $temp_dir/usr/lib/pidee/pidee/README* $temp_dir/usr/share/doc/pidee

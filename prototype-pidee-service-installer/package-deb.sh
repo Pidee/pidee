@@ -92,7 +92,6 @@ function error_exit {
 		--provides "pidee" \
 		--license "MIT" \
 		--description "Support package for the Pidee Raspberry Pi add-on board" \
-		--deb-init $this_script_dir/assets/pidee.init \
 		--before-install $this_script_dir/assets/preinst \
 		--after-install $this_script_dir/assets/postinst \
 		--before-remove $this_script_dir/assets/prerm \

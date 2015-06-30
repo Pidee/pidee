@@ -18,10 +18,26 @@ set -e
 
 case "$1" in
     remove|upgrade|deconfigure)
-        # Stop pidee service
-        if [ -f /etc/init.d/pidee ];
-        then
-            service pidee stop
+
+        ## Check if we are using systemd
+        if [ $grep_systemd = 1 ] || [ $pidof_systemd = 1 ]; then
+            ## TODO: should we check for [ hash systemctl 2> /dev/null ] first?
+
+            ## Grep list of available .service(s)
+            pidee_was_here=$(systemctl list-units | grep -cim1 pidee)
+
+            if [ $pidee_was_here = 1 ]; then
+                ## Stop the service
+                systemctl stop pidee 2> /dev/null                
+            fi
+
+        ## Or use System 5 init
+        else
+            ## Stop pidee daemon if it was already installed
+            if [ -f /etc/init.d/pidee ];
+            then
+                service pidee stop
+            fi
         fi
     ;;
 

@@ -21,7 +21,37 @@ set -e
 
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-        true
+
+        ## Below two methods to sniff for systemd being in use
+        ## 1 = good
+        ## 0 = bad
+        grep_systemd=$(sudo stat /proc/1/exe | grep -cim1 systemd)
+        pidof_systemd=$(pidof systemd && echo 1 || echo 0)
+        
+        # Check if we have systemd
+        if [ $grep_systemd = 1 ] || [ $pidof_systemd = 1 ]; then
+            # TODO: should we check for [ hash systemctl 2> /dev/null ] first?
+
+            # Check if we are actually uninstalling or just upgrading
+            if [ $1 != upgrade ]; then
+                # Disable the service
+                systemctl disable pidee
+
+                # Symlink pidee.service to /etc/systemd/system/pidee.service
+                rm -f /etc/systemd/system/pidee.service
+            fi
+
+        # Or use System 5 init
+        else
+            # Check if we are actually uninstalling or just upgrading
+            if [ $1 != upgrade ]; then
+                # Remove from boot rc.d and silence errors (and stdout) if already installed
+                update-rc.d -f pidee remove 2> /dev/null
+
+                # Remove symlink /etc/init.d/pidee
+                rm -f /etc/init.d/pidee
+            fi
+        fi
     ;;
 
     *)

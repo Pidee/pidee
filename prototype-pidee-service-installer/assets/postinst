@@ -26,21 +26,57 @@
 set -e
 
 case "$1" in
+    ## What to do in case of:
     configure)
         
         # Add pidee user and group
-        adduser --system --group --no-create-home --quiet pidee
+        adduser \
+            --system \
+            --group \
+            --no-create-home \
+            --quiet \
+            pidee
 
-        # Start service
-        if [ -f /etc/init.d/pidee ];
-        then
-            service pidee start
+        ## Below two methods to sniff for systemd being in use
+        ## 1 = good
+        ## 0 = bad
+        grep_systemd=$(sudo stat /proc/1/exe | grep -cim1 systemd)
+        pidof_systemd=$(pidof systemd && echo 1 || echo 0)
+        
+        # Check if we have systemd
+        if [ $grep_systemd = 1 ] || [ $pidof_systemd = 1 ]; then
+            # TODO: should we check for [ hash systemctl 2> /dev/null ] first?
+
+            # Symlink pidee.service to /etc/systemd/system/pidee.service
+            ln -sf /usr/lib/pidee/pidee.service /etc/systemd/system/pidee.service
+
+            # Enable the service
+            systemctl enable pidee
+
+            # Start it
+            systemctl restart pidee
+        # Or use System 5 init
+        else
+            # Symlink pidee.init to /etc/init.d/pidee
+            ln -sf /usr/lib/pidee/pidee.init /etc/init.d/pidee
+
+            # Chmod it to 755
+            chmod 755 /usr/lib/pidee/pidee.init
+            
+            # Add to boot rc.d and silence errors (and stdout) if already installed
+            update-rc.d pidee defaults 2> /dev/null
+
+            # Start the daemon
+            service pidee restart
         fi
     ;;
 
+    ## What to do in case of:
     abort-upgrade|abort-remove|abort-deconfigure)
+        ## Nothing
     ;;
 
+    ## What to do in case of anything else:
     *)
         echo "postinst called with unknown argument \`$1'" >&2
         exit 1
