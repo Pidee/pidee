@@ -26,7 +26,7 @@ function getUIDFromUsername ( username ) {
             if ( err ) {
                 return reject( err );
             }
-            resolve( stdout );
+            resolve( parseInt(stdout, 10) );
         });
     });
 }
