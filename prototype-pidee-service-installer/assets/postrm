@@ -25,11 +25,12 @@ case "$1" in
         ## Below two methods to sniff for systemd being in use
         ## 1 = good
         ## 0 = bad
-        grep_systemd=$(sudo stat /proc/1/exe | grep -cim1 systemd)
-        pidof_systemd=$(pidof systemd && echo 1 || echo 0)
+        ## these are /dev/null'd because if nothing matches then we have a bad return code and the install fails
+        grep_systemd=$(sudo stat /proc/1/exe | grep -cim1 systemd) &> /dev/null
+        pidof_systemd=$(pidof systemd && echo 1 || echo 0) &> /dev/null
 
         # Check if we have systemd
-        if [ $grep_systemd = 1 ] || [ $pidof_systemd = 1 ]; then
+        if [ $grep_systemd -eq 1 ] || [ $pidof_systemd -eq 1 ]; then
             # TODO: should we check for [ hash systemctl 2> /dev/null ] first?
 
             # Check if we are actually uninstalling or just upgrading
@@ -47,6 +48,7 @@ case "$1" in
         else
             # Check if we are actually uninstalling or just upgrading
             if [ $1 != upgrade ]; then
+
                 # Remove from boot rc.d and silence errors (and stdout) if already installed
                 update-rc.d -f pidee remove 2> /dev/null
 
