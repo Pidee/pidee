@@ -28,7 +28,7 @@ case "$1" in
 
             if [ $pidee_was_here = 1 ]; then
                 ## Stop the service
-                systemctl stop pidee 2> /dev/null                
+                systemctl stop pidee 2> /dev/null
             fi
 
         ## Or use System 5 init
