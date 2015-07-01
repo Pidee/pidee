@@ -1,10 +1,19 @@
+[Unit]
+Description="Pidee breakout board service for Raspberry Pi"
+Documentation="http://theworkers.net/pidee"
+
 [Service]
 ExecStart=/usr/lib/pidee/node/bin/node /usr/sbin/pidee-service
-Restart=always
+# Restart: values of interest: always, on-failure
+Restart=on-failure
+RestartSec=1
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=pidee
-Environment=NODE_ENV=production
+SyslogIdentifier=pidee-service
+Environment=PIDEE_LAUNCHED_BY=systemd
+# OOMScoreAdjust: between -1000 and 1000 (high mem pressure don't kill / do kill likeliness)
+OOMScoreAdjust=-1000
 
 [Install]
+# WatedBy: multi-user.target is a normal system boot. Can get more critical if wanted…
 WantedBy=multi-user.target
