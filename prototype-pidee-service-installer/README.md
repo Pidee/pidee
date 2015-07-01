@@ -61,37 +61,50 @@ For the curious, the software will be installed into the directory tree below.
     .
     ├── etc
     │   └── pidee
-    │       ├── default.js
-    │       └── index.js
-    └── usr
-        ├── bin
-        │   └── pidee
-        ├── lib
-        │   └── pidee
-        │       ├── node
-        │       │   ├── ChangeLog
-        │       │   ├── LICENSE
-        │       │   ├── README.md
-        │       │   ├── bin/…
-        │       │   ├── include/…
-        │       │   ├── lib/…
-        │       │   └── share/…
-        │       └── pidee
-        │           ├── README.md
-        │           ├── bin/…
-        │           ├── conf/…
-        │           ├── libs/…
-        │           ├── man/…
-        │           ├── node_modules/…
-        │           └── package.json
-        ├── sbin
-        │   └── pidee-service
-        └── share
-            ├── doc
-            │   └── pidee
-            │       └── README.md
-            └── man
-                ├── man1
-                │   └── pidee.1
-                └── man8
-                    └── pidee-service.8
+    │       └── pidee.conf
+    ├── usr
+    │   ├── bin
+    │   │   └── pidee
+    │   ├── lib
+    │   │   └── pidee
+    │   │       ├── node
+    │   │       │   ├── bin
+    │   │       │   │   ├── node
+    │   │       │   │   └── npm
+    │   │       │   ├── include
+    │   │       │   ├── lib
+    │   │       │   └── share
+    │   │       ├── pidee
+    │   │       │   ├── README.md
+    │   │       │   ├── bin
+    │   │       │   │   ├── pidee-cli
+    │   │       │   │   └── pidee-service
+    │   │       │   ├── conf
+    │   │       │   │   └── pidee.conf
+    │   │       │   ├── libs
+    │   │       │   │   ├── pidee-config.js
+    │   │       │   │   ├── pidee-gpio-connect.js
+    │   │       │   │   ├── pidee-service.js
+    │   │       │   │   └── pidee-utils.js
+    │   │       │   ├── man
+    │   │       │   │   ├── pidee-service.8.md
+    │   │       │   │   └── pidee.1.md
+    │   │       │   ├── node_modules
+    │   │       │   └── package.json
+    │   │       ├── pidee.init
+    │   │       └── pidee.service
+    │   ├── sbin
+    │   │   └── pidee-service
+    │   └── share
+    │       ├── doc
+    │       │   └── pidee
+    │       │       └── README.md
+    │       └── man
+    │           ├── man1
+    │           │   └── pidee.1
+    │           └── man8
+    │               └── pidee-service.8
+    └── var
+        └── lib
+            └── pidee
+                └── pidee.sock
