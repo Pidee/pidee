@@ -42,6 +42,14 @@ function error_exit {
 
 	## Set the pidee service dir to argument or default
 	pidee_source_dir=${1:-$this_script_dir/../prototype-pidee-service}
+	## Update node modules
+	pushd $pidee_source_dir
+	npm_prefix=$(npm prefix) &> /dev/null
+	pushd $npm_prefix
+	npm install --silent
+	npm dedupe
+	popd
+	popd
 
 	## Get a temporary directory to work in
 	temp_dir=$( mktemp -dt "$(basename -- "$0").$$.XXXX" )
