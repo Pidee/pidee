@@ -67,6 +67,8 @@ NODE_BIN=/usr/lib/pidee/node/bin/$NAME
 
 PIDFILE="/var/run/pidee.pid"
 
+export PIDEE_LAUNCHED_BY=init.d
+
 # Exit if the package is not installed
 [ -x "$NODE_BIN" ] ||  { echo "Can't find Node.js ($NODE_BIN)"  >&2; exit 0; }
 
