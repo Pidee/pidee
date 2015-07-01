@@ -65,7 +65,6 @@ function error_exit {
 	hash fpm 2>/dev/null || { printf >&2 "Ruby gem \"fpm\" is required, but it's not installed. Aborting. Please run:\n$ gem install fpm\n"; exit 1; }
 	if [[ $(uname -s) == "Darwin" ]]; then
 		hash gtar 2>/dev/null || { printf >&2 "\"gtar\" is required, but it's not installed. It's available in brew as \"gnu-tar\" if you are using OS X\n"; exit 1; }
-		hash dpkg 2>/dev/null || { printf >&2 "\"dpkg\" is required, but it's not installed. It's available in brew as \"dpkg\" if you are using OS X\n"; exit 1; }
 	fi
 
 	## Temporary work dir
@@ -99,13 +98,6 @@ function error_exit {
 		--before-remove $this_script_dir/assets/prerm \
 		--after-remove $this_script_dir/assets/postrm \
 		-C $temp_fpm_dir
-	popd
-
-	## Create a package index file Packages.gz
-	>&2 echo "—— Generating package index file…"
-	pushd $deb_destination_dir
-	dpkg-scanpackages . 1> Packages 2> /dev/null
-	gzip --best --force --keep Packages
 	popd
 
 	## Cleanup after yourself!
