@@ -4,9 +4,9 @@
 ## On the server (after having imported the GPG public/private keys)
 ## Export the public key for APT import
 ## $ cd ~/webapps/theworkers_net_pidee
-## $ gpg --armor --export pidee@theworkers.net --output pidee@theworkers.net.gpg.key > pidee@theworkers.net.gpg.key
+## $ gpg --armor --export pidee@theworkers.net --output pidee.public.key > pidee.public.key
 ## On the client:
-## $ wget -qO - http://pidee.theworkers.net/pidee@theworkers.net.gpg.key | sudo apt-key add -
+## $ wget -qO - http://pidee.theworkers.net/pidee.public.key | sudo apt-key add -
 
 ## Note add a ~passphrase file (text file with your password) to unlock gpg
 
