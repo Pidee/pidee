@@ -64,6 +64,7 @@ function error_exit {
 	mkdir -p $temp_dir/usr/share/doc/pidee
 	mkdir -p $temp_dir/usr/share/man/man1
 	mkdir -p $temp_dir/usr/share/man/man8
+	mkdir -p $temp_dir/var/lib/pidee
 
 	## Copy Pidee source files to /usr/lib/pidee/pidee
 	>&2 echo "—— Copying source files…"
@@ -109,6 +110,7 @@ function error_exit {
 	tar xf $this_script_dir/assets/node_armhf.tar.gz --directory node --strip 1
 	cp -r node/* $temp_dir/usr/lib/pidee/node
 	popd
+	rm -rf $node_temp_dir
 
 
 	## Tarball it!
