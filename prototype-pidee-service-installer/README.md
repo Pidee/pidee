@@ -59,52 +59,40 @@ Replace `pidee_VERSION_armhf` with an actual version number. For example `pidee_
 For the curious, the software will be installed into the directory tree below.
 
     .
-    ├── etc
-    │   └── pidee
+    ├── etc/
+    │   └── pidee/
     │       └── pidee.conf
-    ├── usr
-    │   ├── bin
-    │   │   └── pidee
-    │   ├── lib
-    │   │   └── pidee
-    │   │       ├── node
-    │   │       │   ├── bin
-    │   │       │   │   ├── node
-    │   │       │   │   └── npm
-    │   │       │   ├── include
-    │   │       │   ├── lib
-    │   │       │   └── share
-    │   │       ├── pidee
+    ├── usr/
+    │   ├── bin/
+    │   │   └── pidee*
+    │   ├── lib/
+    │   │   └── pidee/
+    │   │       ├── node/
+    │   │       │   ├── bin/
+    │   │       │   ├── include/
+    │   │       │   ├── lib/
+    │   │       │   └── share/
+    │   │       ├── pidee/
     │   │       │   ├── README.md
-    │   │       │   ├── bin
-    │   │       │   │   ├── pidee-cli
-    │   │       │   │   └── pidee-service
-    │   │       │   ├── conf
-    │   │       │   │   └── pidee.conf
-    │   │       │   ├── libs
-    │   │       │   │   ├── pidee-config.js
-    │   │       │   │   ├── pidee-gpio-connect.js
-    │   │       │   │   ├── pidee-service.js
-    │   │       │   │   └── pidee-utils.js
-    │   │       │   ├── man
-    │   │       │   │   ├── pidee-service.8.md
-    │   │       │   │   └── pidee.1.md
-    │   │       │   ├── node_modules
+    │   │       │   ├── bin/
+    │   │       │   ├── conf/
+    │   │       │   ├── libs/
+    │   │       │   ├── man/
+    │   │       │   ├── node_modules/
     │   │       │   └── package.json
-    │   │       ├── pidee.init
+    │   │       ├── pidee.init*
     │   │       └── pidee.service
-    │   ├── sbin
-    │   │   └── pidee-service
-    │   └── share
-    │       ├── doc
-    │       │   └── pidee
+    │   ├── sbin/
+    │   │   └── pidee-service*
+    │   └── share/
+    │       ├── doc/
+    │       │   └── pidee/
     │       │       └── README.md
-    │       └── man
-    │           ├── man1
+    │       └── man/
+    │           ├── man1/
     │           │   └── pidee.1
-    │           └── man8
+    │           └── man8/
     │               └── pidee-service.8
-    └── var
-        └── lib
-            └── pidee
-                └── pidee.sock
+    └── var/
+        └── lib/
+            └── pidee/
