@@ -44,9 +44,12 @@ function error_exit {
 	pidee_source_dir="$this_script_dir/../prototype-pidee-service"
 
 	## Update node modules
+	## https://docs.npmjs.com/cli/prune
+	## https://docs.npmjs.com/cli/dedupe
 	pushd $pidee_source_dir
 	npm_prefix=$(npm prefix) &> /dev/null
 	pushd $npm_prefix
+	npm prune --production
 	npm install --silent
 	npm dedupe
 	popd
