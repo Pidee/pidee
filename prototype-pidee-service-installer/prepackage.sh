@@ -41,7 +41,8 @@ function error_exit {
 	hash md2man-roff 2>/dev/null || { printf >&2 "Ruby gem \"md2man\" is required, but it's not installed. Aborting. Please run:\n$ gem install md2man\n"; exit 1; }
 
 	## Set the pidee service dir to argument or default
-	pidee_source_dir=${1:-$this_script_dir/../prototype-pidee-service}
+	pidee_source_dir="$this_script_dir/../prototype-pidee-service"
+
 	## Update node modules
 	pushd $pidee_source_dir
 	npm_prefix=$(npm prefix) &> /dev/null

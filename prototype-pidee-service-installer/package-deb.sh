@@ -21,7 +21,7 @@ shopt -s extglob;
 # done
 
 ## .deb destination dir (arg or current dir)
-deb_destination_dir=${1:-./~debs}
+deb_destination_dir=./~debs
 
 ## Get the absolute parent dir of this file
 # http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in?page=1&tab=votes#tab-top
