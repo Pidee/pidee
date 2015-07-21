@@ -13,13 +13,14 @@ var options = {
     socketFilePath: '/tmp/pidee.sock'
 };
 
+console.log( 'TODO add get' );
 
 commander
     .version( require( './../package' ).version );
 
 commander
     .command( 'set [color] [value]' )
-    .description( 'set LED (red|yellow|green) to between 0 - 1' )
+    .description( 'set LED (red|yellow|green) to between 0.0 - 1.1' )
     .action( function ( color, value, options ) {
         if ( typeof color !== 'string' || [ 'red', 'green', 'yellow' ].indexOf( color.toLowerCase() ) === -1 ) {
             return exitWithError( "Error color not recognised. Must be 'red', 'green' or 'yellow'" );
@@ -30,7 +31,7 @@ commander
         }
 
         value = parseFloat( value, 10 );
-
+        
         if ( isNaN( value ) ) {
             return exitWithError( "Error could not parse value. It should be between 0 and 1" );
         }
@@ -51,7 +52,7 @@ commander
 
 commander
     .command( 'dip' )
-    .description( 'reads all DIP switch values as an integer value' )
+    .description( 'reads all DIP switch values as an unsigned byte, switch 1 is LSB' )
     .action( function () {
         console.log( 'should read dip' );
     });
