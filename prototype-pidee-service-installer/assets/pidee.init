@@ -1,0 +1,253 @@
+#!/bin/sh
+# ------------------------------------------------------------------------------ 
+# SOME INFOS: fairly standard (debian) init script.
+#             Note that node doesn't create a PID file (hence --make-pidfile) 
+#
+# MORE INFOS: INIT SCRIPT       http://www.debian.org/doc/debian-policy/ch-opersys.html#s-sysvinit
+#             INIT-INFO RULES   http://wiki.debian.org/LSBInitScripts
+#             INSTALL/REMOVE    http://www.debian-administration.org/articles/28
+# ------------------------------------------------------------------------------
+#
+#  1) copy the renamed/modified script(s) to /etc/init.d
+#     chmod 755,
+#
+#  2) if you wish the Daemon to be lauched at boot / stopped at shutdown :
+#     INSTALL : update-rc.d scriptname defaults 
+#     (UNINSTALL : update-rc.d -f  scriptname remove)
+#
+#  3)  based on : Debian /etc/init.d/skeleton
+
+
+### BEGIN INIT INFO
+# Provides:          pidee
+# Required-Start:    $local_fs $remote_fs $named $syslog
+# Required-Stop:     $local_fs $remote_fs $named $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: DEBIAN initscript for node.js servers/apps
+# Description:       Pidee GPIO server
+### END INIT INFO
+
+# Author: Tommaso Lanza <pidee@theworkers.net>
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin # modify if you need
+
+# path to your node.js server/app
+# NB: don't use ~/ in path
+NODE_SCRIPT="/usr/sbin/pidee-service"
+
+# description
+DESC="Pidee daemon"
+
+# USER who OWNS the daemon process (no matter whoever runs the init script)
+# user:group (if no group is specified, the primary GID for that user is used)
+NODE_USER=root
+
+# name of the node.js executable
+NAME=node
+
+# this SHOULD POINT TO where your node executable is
+NODE_BIN=/usr/lib/pidee/node/bin/$NAME
+
+## start-stop-daemon exist statuses
+# Exit status:
+#   0 = done
+#   1 = nothing done (=> 0 if --oknodo)
+#   2 = with --retry, processes would not die
+#   3 = trouble
+# Exit status with --status:
+#   0 = program is running
+#   1 = program is not running and the pid file exists
+#   3 = program is not running
+#   4 = unable to determine status
+
+
+# Do NOT "set -e"
+
+PIDFILE="/var/run/pidee.pid"
+
+export PIDEE_LAUNCHED_BY=init.d
+
+# Exit if the package is not installed
+[ -x "$NODE_BIN" ] ||  { echo "Can't find Node.js ($NODE_BIN)"  >&2; exit 0; }
+
+# Read configuration variable file if it is present
+[ -r /etc/default/$INIT_SCRIPT_NAME ] && . /etc/default/$INIT_SCRIPT_NAME
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+# uncomment to override system setting
+# VERBOSE=yes
+
+# Function that starts the daemon/service
+do_start() {
+	start-stop-daemon \
+		--start \
+		--quiet \
+		--make-pidfile \
+		--pidfile $PIDFILE \
+		--name $NAME \
+		--chuid $NODE_USER \
+		--background \
+		--startas $NODE_BIN -- $NODE_SCRIPT
+		# || { [ "$VERBOSE" != no ] && log_daemon_msg  "Could not start $DESC" "pidee"; return 2; }
+
+	# Capture start-stop-daemon return code
+	RETVAL="$?"
+
+	# Add code here, if necessary, that waits for the process to be ready
+	# to handle requests from services started subsequently which depend
+	# on this one.  As a last resort, sleep for some time.
+	[ "$VERBOSE" != no ] && log_daemon_msg  "started $DESC" "pidee"
+
+	return "$RETVAL"
+}
+
+# Function that stops the daemon/service
+do_stop() {
+	# Wait for children to finish too if this is a daemon that forks
+	# and if the daemon is only ever run from this initscript.
+	# If the above conditions are not satisfied then add some other code
+	# that waits for the process to drop all resources that could be
+	# needed by services started subsequently.  A last resort is to
+	# sleep for some time.
+
+	start-stop-daemon \
+		--stop \
+		--quiet \
+		--oknodo \
+		--retry=0/3/KILL/5 \
+		--pidfile $PIDFILE \
+		--name $NAME \
+		--chuid $NODE_USER \
+		--startas $NODE_BIN -- $NODE_SCRIPT
+
+	# Capture start-stop-daemon return code
+	RETVAL="$?"
+
+	# Many daemons don't delete their pidfiles when they exit.
+	[ "$RETVAL" = 0 ] && rm -f $PIDFILE
+	[ "$RETVAL" = 0 ] && [ "$VERBOSE" != no ] && log_daemon_msg  "Stopped $DESC" "pidee"
+
+	return "$RETVAL"
+}
+
+# Function that sends a SIGHUP to the daemon/service
+do_reload() {
+	# not in use
+	# If the daemon can reload its configuration without
+	# restarting (for example, when it is sent a SIGHUP),
+	# then implement that here.
+
+	start-stop-daemon \
+		--stop \
+		--quiet \
+		--signal 1 \
+		--pidfile $PIDFILE  \
+		--chuid $NODE_USER \
+		--name $NAME
+
+	return 0
+}
+
+# Function that returns the daemon 
+do_status() {
+	# http://refspecs.freestandards.org/LSB_3.1.1/LSB-Core-generic/LSB-Core-generic/iniscrptact.html
+	# 0 program is running or service is OK
+	# 1 program is dead and /var/run pid file exists
+	# (2 program is dead and /var/lock lock file exists) (not used here)
+	# 3 program is not running
+	# 4 program or service status is unknown
+
+	RUNNING=$(running)
+
+	# $PIDFILE corresponds to a live $NAME process
+	ispidactive=$(pidof $NAME | grep `cat $PIDFILE 2>&1` >/dev/null 2>&1)
+	ISPIDACTIVE=$?
+
+	if [ -n "$RUNNING" ]; then
+		if [ $ISPIDACTIVE ]; then 
+			log_success_msg "Pidee (launched by `id -un`) (--chuid $NODE_USER) is running"
+			exit 0      
+		fi
+	else
+		if [ -f $PIDFILE ]; then
+			log_success_msg "Pidee (launched by `id -un`) (--chuid $NODE_USER) is not running, phantom pidfile $PIDFILE"
+			exit 1
+		else
+			log_success_msg "No instance launched by `id -un`, of pidee (--chuid $NODE_USER) found"
+			exit 3
+		fi
+	fi
+}
+
+## TODO: change this to use start-stop-daemon --status
+running() {
+	RUNSTAT=$(start-stop-daemon --start --quiet --pidfile $PIDFILE --chuid $NODE_USER --background --startas $NODE_BIN --test > /dev/null)
+	if [ "$?" = 1 ]; then
+		echo y
+	fi
+}
+
+
+case "$1" in
+	start)
+		[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "pidee"
+		do_start
+		case "$?" in
+			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+			2|3) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+		esac
+	;;
+	stop)
+		[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "pidee"
+		do_stop
+		case "$?" in
+			0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+			2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+		esac
+	;;
+	# reload|force-reload)
+	# 	# If do_reload() is not implemented then leave this commented out
+	# 	# and leave 'force-reload' as an alias for 'restart'.
+	# 	log_daemon_msg "Reloading $DESC" "$NAME"
+	# 	do_reload
+	# 	log_end_msg $?
+	# ;;
+	restart|force-reload)
+		# If the "reload" option is implemented then remove the
+		# 'force-reload' alias
+		log_daemon_msg "Restarting $DESC" "pidee"
+		do_stop
+		case "$?" in
+			0|1)
+				do_start
+				case "$?" in
+					0) log_end_msg 0 ;;
+					1) log_end_msg 1 ;; # Old process is still running
+					*) log_end_msg 1 ;; # Failed to start
+				esac
+			;;
+			*)
+				# Failed to stop
+				log_end_msg 1
+			;;
+		esac
+	;;
+	status)
+		do_status
+	;;
+	*)
+		#echo "Usage: /etc/init.d/pidee {start|stop|restart|reload|force-reload}" >&2
+		echo "Usage: /etc/init.d/pidee {start|stop|restart|force-reload}" >&2
+		exit 3
+	;;
+esac
+
+exit 0

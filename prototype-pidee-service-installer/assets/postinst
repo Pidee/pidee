@@ -1,0 +1,93 @@
+#!/bin/sh
+
+# This script typically completes any required configuration of the package foo 
+# once foo has been unpacked from its Debian archive (".deb") file. 
+#
+# Often, 'postinst' scripts ask the user for input, and/or warn the user 
+# that if he accepts default values, he should remember to go back and 
+# re-configure that package as the situation warrants.
+#
+# Many 'postinst' scripts then execute any commands necessary to start or
+# restart a service once a new package has been installed or upgraded.
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <postinst> `abort-remove'
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+# https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html#s6.1
+
+set -e
+
+case "$1" in
+    ## What to do in case of:
+    configure)
+        
+        # Add pidee user and group
+        adduser \
+            --system \
+            --group \
+            --no-create-home \
+            --quiet \
+            pidee
+
+        ## Below two methods to sniff for systemd being in use
+        ## 1 = good
+        ## 0 = bad
+        ## these are /dev/null'd because if nothing matches then we have a bad return code and the install fails
+        grep_systemd=$(sudo stat /proc/1/exe | grep -cim1 systemd) &> /dev/null
+        pidof_systemd=$(pidof systemd && echo 1 || echo 0) &> /dev/null
+        
+        # Check if we have systemd
+        if [ "$grep_systemd" = "1" ] || [ "$pidof_systemd" = "1" ]; then
+            # TODO: should we check for [ hash systemctl 2> /dev/null ] first?
+
+            # Symlink pidee.service to /etc/systemd/system/pidee.service
+            ln -sf /usr/lib/pidee/pidee.service /etc/systemd/system/pidee.service
+            ln -sf /usr/lib/pidee/pidee/conf/pidee.conf /etc/pidee/pidee.conf
+
+            # Reload configs
+            systemctl daemon-reload
+            
+            # Enable the service
+            systemctl enable pidee
+
+            # Start it
+            systemctl restart pidee
+        # Or use System 5 init
+        else
+            # Symlink pidee.init to /etc/init.d/pidee
+            ln -sf /usr/lib/pidee/pidee.init /etc/init.d/pidee
+
+            # Chmod it to 755
+            chmod 755 /usr/lib/pidee/pidee.init
+            
+            # Add to boot rc.d and silence errors (and stdout) if already installed
+            update-rc.d pidee defaults 2> /dev/null
+
+            # Start the daemon
+            service pidee restart
+        fi
+    ;;
+
+    ## What to do in case of:
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ## Nothing
+    ;;
+
+    ## What to do in case of anything else:
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0
