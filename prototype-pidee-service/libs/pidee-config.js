@@ -14,7 +14,7 @@ function  make () {
     return {
         src: '/etc/pidee.conf',
         defaultSettings: {
-            ygrLedPins: [ 36, 38, 40 ],
+            ygrLedPins: [ 35, 32, 33 ],
             dipPins: [ 31, 29, 22, 18, 16, 15, 13, 11 ],
             enablePwm: false,
             buttonPins: [ 12 ],
