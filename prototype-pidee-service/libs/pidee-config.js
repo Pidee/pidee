@@ -17,7 +17,8 @@ function  make () {
             ygrLedPins: [ 36, 38, 40 ],
             dipPins: [ 31, 29, 22, 18, 16, 15, 13, 11 ],
             enablePwm: false,
-            buttonPins: [ 12 ]
+            buttonPins: [ 12 ],
+            ledOnIsHigh: true
         }
     };
 }

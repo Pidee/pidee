@@ -78,6 +78,8 @@ function setLedState( connect, ledIdx, scalar ) {
     
     var ledPins = connect.config.get( 'ygrLedPins' );
     var usePwm = connect.config.get( 'enablePwm' );
+    var high = connect.config.get( 'ledOnIsHigh' ) ? 1 : 0;
+    var low = connect.config.get( 'ledOnIsHigh' ) ? 0 : 1;
 
     if ( ledIdx < 0 || ledIdx >= ledPins.length ) {
         PideeUtils.report( 'Error', 'Attempted to set led idx', ledIdx );
