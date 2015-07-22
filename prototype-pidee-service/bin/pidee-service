@@ -11,6 +11,7 @@ var PideeUtils = require( '../libs/pidee-utils' );
 var PideeGpioConnect = require( '../libs/pidee-gpio-connect' );
 var fs = require( 'fs' );
 var net = require( 'net' );
+var Bacon = require( 'baconjs' );
 
 // Make & Init
 // ===========
@@ -45,7 +46,7 @@ init( make() )
 // =========
 
 function confirmSuperUser ( service ) {
-    return W.promise( function ( resolve, reject ) {
+    return W.promise( function ( rehasEnoughWordshasEnoughWordshasEnoughWordshasEnoughWordssolve, reject ) {
         if ( process.getuid() === 0 ) {
             resolve( service );
         } else {
@@ -103,9 +104,6 @@ function runTestSequence ( service ) {
     });
 }
 
-// Server
-// ------
-
 function unlinkSocketFile ( service ) {
     return W.promise( function ( resolve, reject ) {
         fs.stat( service.socketFilePath, function( err, stat ) {
@@ -122,31 +120,102 @@ function unlinkSocketFile ( service ) {
 
 function makeServer ( service ) {
     return W.promise( function ( resolve, reject ) {
-        service.server = net.createServer( function( client ) {
+        
+        service.server = net.createServer( function( socket ) {
+
+            // Add subscriptions tokens
+            socket.subscriptions = [];
+            
             PideeUtils.report( "CONNECTION", 'New client connection' );
-            client.on( 'data', function ( data ) {
 
-                // Protcol
-                // -------
-                
-                PideeUtils.report( 'DATA RECEIVED', data );
+            // Split into word array
+            // =====================
+            var dataStream = Bacon.fromEvent( socket, 'data' )
+                    .map( function ( data ) { data.toString(); } )
+                    .map( function ( str ) { str.split( ' ' ); } );
 
-                var dataArr = data.toString().split( ' ' );
-                if ( dataArr.length < 2 ) { return; }
-                var token = dataArr[ 0 ];
-                var command = dataArr[ 1 ];
-                var value = dataArr[ 2 ];
+            // Filter and send errors
+            // ======================
+            var f = W.compose( filterOrDoSendError, socket, dataStream );
+            var invalidMsg = "'Could not parse packet. May be invalid '";
+            
+            dataStream = f( hasValidToken, 1, W.join( invalidMsg, 'or missing token i.e. make sure packet starts with a token which beginning with `#`"' ) );
+            dataStream = f( hasValidDomain, 2, W.join( invalidMsg, 'or missing domain i.e. domain should be like: `led.yellow`, `switch`, `dip.3`"' ) );
+            dataStream = f( hasValidMethod, 3, W.join( invalidMsg, 'or missing method i.e. GET, SET, SUBSCRIBE, UNSUBSCRIBE"' ) );
+            dataStream = f( hasAnyRequiredValues, 4, '"Missing value"' );
+            dataStream = f( W.compose( W.partial( isMethod, 'GET' ), hasValidDomainForGetMethod ), 5, '"GET not allowed on this domain" E.g. you cannot GET an LED values"' );
+            dataStream = f( W.compose( W.partial( isMethod, 'SET' ), hasValidDomainForSetMethod ), 6, '"SET not allowed on this domain" E.g. you cannot SET the button value"' );
+            dataStream = f( W.compose( W.partial( isMethod, 'SUBSCRIBE' ), hasValidDomainForSubscriptionMethods ), 7, '"SUBSCRIBE not allowed on this domain" E.g. you cannot SUBSCRBE to the LED value"' );
+            dataStream = f( W.compose( W.partial( isMethod, 'UNSUBSCRIBE' ), hasValidDomainForSubscriptionMethods ), 8, '"UNSUBSCRIBE not allowed on this domain" E.g.  you cannot UNSUBSCRIBE to the LED value"' );
 
-                // Leds
-                var colorIdx = [ 'yellow', 'green', 'red' ].indexOf( command.toLowerCase() );
-                
-                if ( colorIdx > -1 ) {
-                    value = parseFloat( value, 10 );
-                    if ( isNaN( value ) ) { return; }
-                    PideeGpioConnect.setLedState( service.connect, colorIdx, value );
-                }
-                
-            });
+            // Action and respond 
+            // ==================
+
+            // GET
+            // ---
+            var getStream = dataStream.filter( W.partial( isMethod, 'GET' ) );
+
+            // ### Button
+            getStream
+                .filter( W.partial( isDomain, 'button' ) )
+                .onValue( function () {
+                    
+                });
+
+            // ### Dip
+            getStream
+                .filter( W.partial( isDomain, 'dip' ) )
+                .onValue( function () {
+                    
+                });
+
+            // #### Specific Dip
+            [ 0, 1, 2, 3, 4, 5, 6, 7 ]
+                .forEach( function ( idx ) {
+                    getStream
+                        .filter( W.partial( isDomain, 'dip.' + idx ) )
+                        .onValue( function () {
+                            
+                        });
+                });
+
+            // ### *
+            getStream
+                .filter( W.partial( isDomain, '*' ) )
+                .onValue( function () {
+                    
+                });
+
+            // SET
+            // ---
+            var setStream = dataStream.filter( W.partial( isMethod, 'SET' ) );
+
+            // ### Led
+            getStream
+                .filter( W.partial( isDomain, 'led' ) )
+                .onValue( function () {
+                    
+                });
+
+            // #### Specific Led
+            [ 'yellow', 'green', 'red' ]
+                .forEach( function ( idx ) {
+                    getStream
+                        .filter( W.partial( isDomain, 'led.' + idx ) )
+                        .onValue( function () {
+                            
+                        });
+                });
+
+            // SUBSCRIBE
+            // ---------
+            var subscribeStream = dataStream.filter( W.partial( isMethod, 'SUBSCRIBE' ) );
+
+            // UNSUBSCRIBE
+            // -----------
+            var unsubscribeStream = dataStream.filter( W.partial( isMethod, 'UNSUBSCRIBE' ) );
+
+            
         });
         resolve( service );
     });
@@ -169,6 +238,109 @@ function changeSocketPermissions ( service ) {
     });
 }
 
+// Utils
+// =====
+
+// Protocol
+// --------
+
+// ### Validators
+
+function negate ( v ) {
+    return !v;
+}
+
+function hasValidToken ( arr ) {
+    return arr.length > 1 && W.startsWith( arr[ 0 ], '#' );
+}
+
+function hasValidDomain ( arr ) {
+   return  [ '*', 'led', 'led.yellow', 'led.green', 'led.red', 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'switch' ].indexOf( arr[2] ) > -1;
+}
+
+function hasValidMethod ( arr ) {
+   return [ 'GET', 'SET', 'SUBSCRIBE', 'UNSUBSCRIBE' ].indexOf( arr[3] ) > -1;
+}
+
+function hasAnyRequiredValues ( arr ) {
+    return !( getMethod( arr ) === 'SET' && arr.length < 4 );
+}
+
+function hasValidDomainForGetMethod ( arr ) {
+    return [ 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'button' ].indexOf( getDomain( arr ) ) > -1;
+}
+
+function hasValidDomainForSetMethod ( arr ) {
+    return [ 'led', 'led.yellow', 'led.green', 'led.red' ].indexOf( getDomain( arr ) ) > -1;
+}
+
+function hasValidDomainForSubscriptionMethods ( arr ) {
+    return [ 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'button', '*' ].indexOf( getDomain( arr ) ) > -1;
+}
 
 
+function isMethod ( method, arr ) {
+    return getMethod( arr ) === method;
+}
+    
+function isDomain( domain, arr ) {
+    return getDomain( arr ) === domain;
+}
+
+// ### Accesors
+
+function getToken ( arr ) {
+    return hasValidToken( arr ) ? arr[ 0 ] : '';
+}
+
+function getDomain ( arr ) {
+    return arr[ 1 ];
+}
+
+function getMethod ( arr ) {
+    return arr[ 2 ];
+}
+
+function getValue ( arr ) {
+    return [ 3 ];
+}
+
+// ### Streams
+
+function filterOrDoSendError( socket, stream, predicate, errorMessage ) {
+    stream
+        .filter( negate( predicate ) )
+        .onValue( function ( arr ) {
+            socket.write( makeErrorPacket().token( getToken( arr ) ).messaage( errorMessage ).get() );
+        });
+    return stream.filter( predicate );
+}
+
+// ### Errors
+
+function makeErrorPacket () {
+    return new ErrorPacket();
+}
+
+function ErrorPacket () {
+    this.token = '';
+    this.message = '';
+    this.code = '0';
+}
+
+ErrorPacket.prototype.get = function () {
+    return [ this.token, 'ERROR', this.code,  this.message ]
+        .filter( W.isOk )
+        .join( ' ' );
+};
+
+ErrorPacket.prototype.token = function ( token ) {
+    this.token = token;
+    return this;
+};
+
+ErrorPacket.prototype.message = function ( token ) {
+    this.message = message;
+    return this;
+};
 
