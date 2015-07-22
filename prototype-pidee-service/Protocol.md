@@ -4,14 +4,14 @@ Protocol
 Overview
 --------
 
-`<REQ-TOKEN>` Word
-
 ## Requests
 
 - `<REQ-TOKEN> <DOMAIN> GET`
 - `<REQ-TOKEN> <DOMAIN> SET <VALUE>`
 - `<REQ-TOKEN> <DOMAIN> SUBSCRIBE`
 - `<REQ-TOKEN> <DOMAIN> UNSUBSCRIBE`
+
+_Note: `<REQ-TOKEN>` is a word
 
 ## Responce
 
@@ -20,18 +20,11 @@ Overview
 - `<REQ-TOKEN> ERROR <MESSAGE>` _Error, for request with token_
 - `<REQ-TOKEN> <DOMAIN> <VALUE>` _Subscription responces_
 
-| Domain  | GET      | SET      | (UN)SUBSCRIBE |
-|---------|----------|----------|---------------|
-| led     |          | &#x2713; |          | 
-| dip     | &#x2713; |          | &#x2713; | 
-| button  | &#x2713; |          | &#x2713; | 
-| all     |          |          | &#x2713; |
-
 Domains
 -------
 
 | Domain  | Value Range |
-|---------|-------------|
+|---------|:-----------:|
 | __all__ | * |
 | __led__ | [0,8] |
 | __led.yellow__ | [0,1] |
@@ -48,10 +41,17 @@ Domains
 | __dip.7__ | [0,1] |
 | __switch__ | [0,1] |
 
+| Domain  | GET      | SET      | (UN)SUBSCRIBE |
+|---------|:--------:|:--------:|:-------------:|
+| led     |          | &#x2713; |          | 
+| dip     | &#x2713; |          | &#x2713; | 
+| button  | &#x2713; |          | &#x2713; | 
+| all     |          |          | &#x2713; |
+
 Examples
 --------
 
-- `e324d led.yellow SET`
+- `e324d led.yellow SET 0`
 
 
 
