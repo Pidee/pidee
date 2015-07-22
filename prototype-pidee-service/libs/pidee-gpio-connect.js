@@ -96,11 +96,41 @@ function setLedState( connect, ledIdx, scalar ) {
 
 }
 
+function getButtonState ( connect ) {
+    return wiringPi.digitalRead( connect.config.get( 'buttonPins' )[ 0 ] );
+}
+
+function getDipState ( connect ) {
+    var dipPins = connect.config.get( 'dipPins' );
+    
+    return [ 0, 1, 2, 3, 4, 5, 6, 7 ]
+        .map( function ( idx ) {
+            console.log( 'READ', idx, dipPins[ idx ], wiringPi.digitalRead( dipPins[ idx ] ) );
+            return wiringPi.digitalRead( dipPins[ idx ] );
+        })
+        .reduce( function ( acc, value, idx ) {
+            var mask = 1 << idx;
+            if ( value ) {
+                acc |= mask;
+            }
+            return acc;
+        }, 0 );
+}
+
+function getDipSwitchState ( connect, idx ) {
+    return wiringPi.digitalRead( connect.config.get( 'dipPins' )[ idx ] );
+}
+
+
 // Export
 // ======
 
 module.exports = {
     make: make,
     init: init,
-    setLedState: setLedState
+    setLedState: setLedState,
+    getButtonState: getButtonState,
+    getDipState: getDipState,
+    getDipSwitchState: getDipSwitchState
+    
 };

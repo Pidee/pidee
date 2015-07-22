@@ -131,6 +131,10 @@ function makeServer ( service ) {
             
             PideeUtils.report( "CONNECTION", 'New client connection' );
 
+            socket.on( 'error', function ( err ) {
+                console.log( 'Write error:', err );
+            });
+            
             // Split into word array
             // =====================
             var dataStream = Bacon.fromEvent( socket, 'data' )
@@ -143,7 +147,7 @@ function makeServer ( service ) {
             var invalidMsg = "'Could not parse packet. May be invalid '";
             
             dataStream = f( dataStream, hasValidToken, 1, W.join( invalidMsg, 'or missing token i.e. make sure packet starts with a token which beginning with `#`"' ) );
-            dataStream = f( dataStream, hasValidDomain, 2, W.join( invalidMsg, 'or missing domain i.e. domain should be like: `led.yellow`, `switch`, `dip.3`"' ) );
+            dataStream = f( dataStream, hasValidDomain, 2, W.join( invalidMsg, 'or missing domain i.e. domain should be like: `led.yellow`, `button`, `dip.3`"' ) );
             dataStream = f( dataStream, hasValidMethod, 3, W.join( invalidMsg, 'or missing method i.e. GET, SET, SUBSCRIBE, UNSUBSCRIBE"' ) );
             dataStream = f( dataStream, hasAnyRequiredValues, 4, '"Missing value"' );
             dataStream = f( dataStream, hasValidDomainForGetMethod, 5, '"GET not allowed on this domain" E.g. you cannot GET an LED values"' );
@@ -155,20 +159,24 @@ function makeServer ( service ) {
 
             // GET
             // ---
-            var getStream = dataStream.filter( W.partial( isMethod, 'GET' ) );
+            var getStream = dataStream.filter( W.partial( isMethod, 'GET' ) ).log( 'GET' );
 
             // ### Button
             getStream
                 .filter( W.partial( isDomain, 'button' ) )
-                .onValue( function () {
-                    
+                .onValue( function ( arr ) {
+                //     var buttonState = PideeGpioConnect.getButtonState( service.connect );
+                //     sendPacket( socket, makePacket().token( getToken( arr ) ).domain( getDomain( arr ) ).value( buttonState ) );
+                //     sendPacket( socket, makePacket().token( getToken( arr ) ).isDone( true ) );
                 });
 
             // ### Dip
             getStream
                 .filter( W.partial( isDomain, 'dip' ) )
-                .onValue( function () {
-                    
+                .onValue( function ( arr ) {
+                    var dipState = PideeGpioConnect.getDipState( service.connect );
+                    sendPacket( socket, makePacket().token( getToken( arr ) ).domain( getDomain( arr ) ).value( dipState ) );
+                    sendPacket( socket, makePacket().token( getToken( arr ) ).isDone( true ) );
                 });
 
             // #### Specific Dip
@@ -176,21 +184,23 @@ function makeServer ( service ) {
                 .forEach( function ( dipNumber, idx ) {
                     getStream
                         .filter( W.partial( isDomain, 'dip.' + dipNumber ) )
-                        .onValue( function () {
-                            
+                        .onValue( function ( arr ) {
+                            var dipSwitchState = PideeGpioConnect.getDipSwitchState( service.connect, dipNumber );
+                            sendPacket( socket, makePacket().token( getToken( arr ) ).domain( getDomain( arr ) ).value( dipSwitchState ) );
+                            sendPacket( socket, makePacket().token( getToken( arr ) ).isDone( true ) );
                         });
                 });
 
-            // ### *
-            getStream
-                .filter( W.partial( isDomain, '*' ) )
+            // All
+            // ----
+            var allStream = dataStream.filter( W.partial( isDomain, '*' ) )
                 .onValue( function () {
-                    
+                   
                 });
 
             // SET
             // ---
-            var setStream = dataStream.filter( W.partial( isMethod, 'SET' ) );
+            var setStream = dataStream.filter( W.partial( isMethod, 'SET' ) ).log( 'SET' );
 
             // ### Led
             setStream
@@ -198,8 +208,6 @@ function makeServer ( service ) {
                 .onValue( function ( arr ) {
                     var v = Number( getValue( arr ) );
                     if ( !isNaN( v ) && v >=0 && v <= 8 ) {
-
-                        
                         PideeGpioConnect.setLedState( service.connect, 0, ( v & ( 1 << 0 ) ) != 0 );
                         PideeGpioConnect.setLedState( service.connect, 1, ( v & ( 1 << 1 ) ) != 0 );
                         PideeGpioConnect.setLedState( service.connect, 2, ( v & ( 1 << 2 ) ) != 0 );
@@ -279,7 +287,7 @@ function hasValidToken ( arr ) {
 }
 
 function hasValidDomain ( arr ) {
-   return  [ '*', 'led', 'led.yellow', 'led.green', 'led.red', 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'switch' ].indexOf( getDomain( arr ) ) > -1;
+   return  [ '*', 'led', 'led.yellow', 'led.green', 'led.red', 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'button' ].indexOf( getDomain( arr ) ) > -1;
 }
 
 function hasValidMethod ( arr ) {
@@ -310,7 +318,6 @@ function hasValidDomainForSubscriptionMethods ( arr ) {
     }
     return [ 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'button', '*' ].indexOf( getDomain( arr ) ) > -1;
 }
-
 
 function isMethod ( method, arr ) {
     return getMethod( arr ) === method;
@@ -344,7 +351,7 @@ function filterOrDoSendError( socket, stream, predicate, errorCode, errorMessage
     stream
         .filter( makeNegated( predicate ) )
         .onValue( function ( arr ) {
-            sendPacket( socket, makeErrorPacket().token( getToken( arr ) ).code( errorCode ).message( errorMessage ).get() );
+            sendPacket( socket, makeErrorPacket().token( getToken( arr ) ).code( errorCode ).message( errorMessage ) );
         });
     
     return stream.filter( predicate );
@@ -388,7 +395,7 @@ ErrorPacket.prototype.code = function ( code ) {
 ErrorPacket.prototype.get = function () {
     return [ this.data.token, 'ERROR', this.data.code,  this.data.message ]
         .filter( W.isOk )
-        .join( ' ' );
+        .join( ' ' ) + '\n';
 };
 
 // ### Packet
@@ -429,7 +436,7 @@ Packet.prototype.isDone = function ( yN ) {
 Packet.prototype.get = function () {
     return [ this.data.token, this.data.isDone ? 'DONE' : '', this.data.domain,  this.data.value ]
         .filter( W.isOk )
-        .join( ' ' );
+        .join( ' ' ) + '\n';
 };
 
 

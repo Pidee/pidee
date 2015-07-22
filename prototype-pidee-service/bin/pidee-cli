@@ -21,8 +21,8 @@ commander
     .description( 'e.g. `set led.yellow 1` or `set led 5`' )
     .action( function ( domain, value, options ) {
         
-        if ( typeof domain !== 'string' || [ 'led', 'led.red', 'led.green', 'led.yellow' ].indexOf( domain ) === -1 ) {
-            return exitWithError( "Error domain not recognised. Must be 'led', 'led.red', 'led.green' or 'led.yellow'" );
+        if ( typeof domain !== 'string' ) {
+            return exitWithError( "Error domain not recognised. Should be 'led', 'led.red', 'led.green' or 'led.yellow'" );
         }
 
         if ( typeof value === 'undefined' ) {
@@ -39,8 +39,6 @@ commander
             return exitWithError( "Error value should be [0.0,1.0] or for domain 'led' [0,8]" );
         }
 
-        console.log( 'Should be setting', domain, 'to', value );
-
         makeOpenSocketConnection()
             .success( function ( socket ) {
                 socket.on( 'data', function ( d ) {
@@ -48,7 +46,36 @@ commander
                 });
                 var packetStr = W.join( '#', Date.now(), ' ', domain, ' SET ', value );
                 console.log( 'Writing:', packetStr );
-                socket.write( packetStr, 'ascii' );
+                socket.write( packetStr, 'ascii', function () {
+                    console.log( 'Should wait for a response' );
+                    socket.end();
+                });
+            })
+            .error( function () {
+                exitWithError( ' Are sure `pidee-service` is running?\n  Could not connect. ' );
+            });
+        
+    });
+
+commander
+    .command( 'get [domain]' )
+    .description( 'eg. `get button`, `get dip`, `get dip.7`' )
+    .action( function ( domain ) {
+        if ( typeof domain !== 'string' ) {
+            return exitWithError( "Error domain not recognised. Should be '*', 'dip', 'button' for example" );
+        }
+
+        makeOpenSocketConnection()
+            .success( function ( socket ) {
+                socket.on( 'data', function ( d ) {
+                    console.log( 'Data:', d.toString( 'ascii' ) );
+                });
+                var packetStr = W.join( '#', Date.now(), ' ', domain, ' GET ' );
+                console.log( 'Writing:', packetStr );
+                socket.write( packetStr, 'ascii', function () {
+                    console.log( 'Should wait for a response' );
+                    socket.end();
+                });
             })
             .error( function () {
                 exitWithError( ' Are sure `pidee-service` is running?\n  Could not connect. ' );
