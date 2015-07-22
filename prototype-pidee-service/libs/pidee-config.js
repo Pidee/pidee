@@ -14,11 +14,11 @@ function  make () {
     return {
         src: '/etc/pidee.conf',
         defaultSettings: {
-            ygrLedPins: [ 35, 32, 33 ],
+            yrgLedPins: [ 35, 33, 32 ],
             dipPins: [ 31, 29, 22, 18, 16, 15, 13, 11 ],
             enablePwm: false,
             buttonPins: [ 12 ],
-            ledOnIsHigh: true
+            ledOnIsHigh: false
         }
     };
 }

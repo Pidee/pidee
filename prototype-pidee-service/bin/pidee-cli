@@ -13,17 +13,16 @@ var options = {
     socketFilePath: '/tmp/pidee.sock'
 };
 
-console.log( 'TODO add get' );
-
 commander
     .version( require( './../package' ).version );
 
 commander
-    .command( 'set [color] [value]' )
-    .description( 'set LED (red|yellow|green) to between 0.0 - 1.1' )
-    .action( function ( color, value, options ) {
-        if ( typeof color !== 'string' || [ 'red', 'green', 'yellow' ].indexOf( color.toLowerCase() ) === -1 ) {
-            return exitWithError( "Error color not recognised. Must be 'red', 'green' or 'yellow'" );
+    .command( 'set [domain] [value]' )
+    .description( 'e.g. `set led.yellow 1` or `set led 5`' )
+    .action( function ( domain, value, options ) {
+        
+        if ( typeof domain !== 'string' || [ 'led', 'led.red', 'led.green', 'led.yellow' ].indexOf( domain ) === -1 ) {
+            return exitWithError( "Error domain not recognised. Must be 'led', 'led.red', 'led.green' or 'led.yellow'" );
         }
 
         if ( typeof value === 'undefined' ) {
@@ -33,51 +32,59 @@ commander
         value = parseFloat( value, 10 );
         
         if ( isNaN( value ) ) {
-            return exitWithError( "Error could not parse value. It should be between 0 and 1" );
+            return exitWithError( "Error could not parse value." );
         }
 
-        if ( value < 0 || value > 1 ) {
-            return exitWithError( "Error value should be between 0 and 1" );
+        if ( value < 0 || value > 8 ) {
+            return exitWithError( "Error value should be [0.0,1.0] or for domain 'led' [0,8]" );
         }
 
-        console.log( 'should be setting', color, 'to', value );
-        
+        console.log( 'Should be setting', domain, 'to', value );
+
         makeOpenSocketConnection()
-            .success( W.partialRight( writeAndCloseSocket, color, value ) )
-            .error( function ( err ) {
-                console.log( 'failed to open connection', err );
+            .success( function ( socket ) {
+                socket.on( 'data', function ( d ) {
+                    console.log( 'Data:', d.toString( 'ascii' ) );
+                });
+                var packetStr = W.join( '#', Date.now(), ' ', domain, ' SET ', value );
+                console.log( 'Writing:', packetStr );
+                socket.write( packetStr, 'ascii' );
+            })
+            .error( function () {
+                exitWithError( ' Are sure `pidee-service` is running?\n  Could not connect. ' );
             });
         
     });
 
-commander
-    .command( 'dip' )
-    .description( 'reads all DIP switch values as an unsigned byte, switch 1 is LSB' )
-    .action( function () {
-        console.log( 'should read dip' );
-    });
 
-commander
-    .command( 'switch [switch-number]' )
-    .description( 'reads a switch value as either 0 or 1' )
-    .action( function ( switchNumber ) {
+// commander
+//     .command( 'dip' )
+//     .description( 'reads all DIP switch values as an unsigned byte, switch 1 is LSB' )
+//     .action( function () {
+//         console.log( 'should read dip' );
+//     });
+
+// commander
+//     .command( 'switch [switch-number]' )
+//     .description( 'reads a switch value as either 0 or 1' )
+//     .action( function ( switchNumber ) {
         
-        if ( typeof switchNumber === 'undefined' ) {
-            return exitWithError( "Error could not parse switch number" );
-        }
+//         if ( typeof switchNumber === 'undefined' ) {
+//             return exitWithError( "Error could not parse switch number" );
+//         }
 
-        switchNumber = parseFloat( switchNumber, 10 );
+//         switchNumber = parseFloat( switchNumber, 10 );
 
-        if ( isNaN( switchNumber ) ) {
-            return exitWithError( "Error could not parse value. It should be between 0 and 1" );
-        }
+//         if ( isNaN( switchNumber ) ) {
+//             return exitWithError( "Error could not parse value. It should be between 0 and 1" );
+//         }
 
-        if ( switchNumber < 0 || switchNumber > 6 ) {
-            return exitWithError( "Error switch number must be between 0 and 6" );
-        }
+//         if ( switchNumber < 0 || switchNumber > 6 ) {
+//             return exitWithError( "Error switch number must be between 0 and 6" );
+//         }
         
-        console.log( 'should read dip switch number', switchNumber );
-    });
+//         console.log( 'should read dip switch number', switchNumber );
+//     });
 
 commander.parse( process.argv );
 
@@ -93,22 +100,14 @@ function makeOpenSocketConnection () {
     });
 }
 
-function writeAndCloseSocket( socket, messages ) {
-    console.log( 'Remove this. It should at least acknowldge' );
-    // console.log( arguments );
-    var token = Date.now() + Math.random();
-    var packet = token + ' ' + W.rest( W.toArray( arguments ) ).join( ' ' );
-    return W.promise( function ( resolve, reject ) {
-        socket.write( packet, function () {
-            socket.destroy();
-        });
-    });
-}
-
 // Utils
 // =====
 
 function exitWithError ( messages ) {
-    console.error.apply( console, arguments );
+    messages = W.toArray( arguments );
+    messages.unshift( '\nError:\n' );
+    messages.push( '\n' );
+    
+    console.error.apply( console, messages );
     process.exit( 1 );
 }

@@ -47,12 +47,12 @@ Domains
 | led     |          | &#x2713; |               | 
 | dip     | &#x2713; |          | &#x2713;      | 
 | button  | &#x2713; |          | &#x2713;      | 
-| *       |          |          | &#x2713;      | 
+| *       | &#x2713; |          | &#x2713;      | 
 
 Examples
 --------
 
-- `e324d led.yellow SET 0`
+- `#e324d led.yellow SET 0`
 
 Error Codes
 -----------
@@ -64,8 +64,8 @@ Error Codes
 - 4: Missing value
 - 5: GET not allowed on domain
 - 6: SET not allowed on domain
-- 7: SUBSCRIBE not allowed on domain
-- 8: UNSUBSCRIBE not allowed on domain
+- 7: SUBSCRIBE and UNSUBSCRIBE not allowed on domain
+- 8: Invalid value
 
 
 
