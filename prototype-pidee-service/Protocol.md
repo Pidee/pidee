@@ -23,9 +23,8 @@ _Note: `<REQ-TOKEN>` is a word
 Domains
 -------
 
-| Domain  | Value Range |
+| Domain  | Value Range | 
 |---------|:-----------:|
-| __all__ | * |
 | __led__ | [0,8] |
 | __led.yellow__ | [0,1] |
 | __led.green__ | [0,1] |
@@ -46,7 +45,6 @@ Domains
 | led     |          | &#x2713; |          | 
 | dip     | &#x2713; |          | &#x2713; | 
 | button  | &#x2713; |          | &#x2713; | 
-| all     |          |          | &#x2713; |
 
 Examples
 --------
