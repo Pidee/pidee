@@ -17,14 +17,16 @@ var net = require( 'net' );
 
 function make () {
     return {
-        socketFilePath: '/tmp/pidee.sock'
+        socketFilePath: '/tmp/pidee.sock',
+        user: 'pidee'
     };
 }
 
-var init = W.composePromisers( makePideeGpioConnect,
-                               doDropSuperUserPrivilages,
-                               doRunTestSequence,
-                               doUnlinkSocketFile,
+var init = W.composePromisers( confirmSuperUser,
+                               makePideeGpioConnect,
+                               dropSuperUserPrivilages,
+                               runTestSequence,
+                               unlinkSocketFile,
                                makeServer,
                                bindServer,
                                changeSocketPermissions,
@@ -42,6 +44,16 @@ init( make() )
 // Promisers
 // =========
 
+function confirmSuperUser ( service ) {
+    return W.promise( function ( resolve, reject ) {
+        if ( process.getuid() === 0 ) {
+            resolve( service );
+        } else {
+            reject( new Error( 'Needs to be run as root. Try running with sudo' ) );
+        }
+    });
+}
+
 function makePideeGpioConnect ( service ) {
     return W.promise( function ( resolve, reject ) {
         PideeGpioConnect
@@ -54,10 +66,10 @@ function makePideeGpioConnect ( service ) {
     });
 }
 
-function doDropSuperUserPrivilages ( service ) {
+function dropSuperUserPrivilages ( service ) {
     return W.promise( function ( resolve, reject ) {
         try {
-            PideeUtils.dropSuperUserPrivilages();
+            process.setuid( service.user );
         } catch ( err ) {
             return reject( err );
         }
@@ -65,7 +77,7 @@ function doDropSuperUserPrivilages ( service ) {
     });
 }
 
-function doRunTestSequence ( service ) {
+function runTestSequence ( service ) {
     return W.promise( function ( resolve, reject ) {
 
         function makeSetLeds( yellow, green, red ) {
@@ -94,7 +106,7 @@ function doRunTestSequence ( service ) {
 // Server
 // ------
 
-function doUnlinkSocketFile ( service ) {
+function unlinkSocketFile ( service ) {
     return W.promise( function ( resolve, reject ) {
         fs.stat( service.socketFilePath, function( err, stat ) {
             if ( !err ) {  
@@ -113,6 +125,10 @@ function makeServer ( service ) {
         service.server = net.createServer( function( client ) {
             PideeUtils.report( "CONNECTION", 'New client connection' );
             client.on( 'data', function ( data ) {
+
+                // Protcol
+                // -------
+                
                 PideeUtils.report( 'DATA RECEIVED', data );
 
                 var dataArr = data.toString().split( ' ' );
@@ -125,15 +141,11 @@ function makeServer ( service ) {
                 var colorIdx = [ 'yellow', 'green', 'red' ].indexOf( command.toLowerCase() );
                 
                 if ( colorIdx > -1 ) {
-
                     value = parseFloat( value, 10 );
                     if ( isNaN( value ) ) { return; }
-
-                    console.log( 'Value',value, dataArr );
-
                     PideeGpioConnect.setLedState( service.connect, colorIdx, value );
-                    
                 }
+                
             });
         });
         resolve( service );

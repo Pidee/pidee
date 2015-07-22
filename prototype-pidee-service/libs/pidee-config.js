@@ -23,7 +23,7 @@ function  make () {
     };
 }
 
-var init = W.composePromisers( PideeUtils.confirmSuperUserPromise, doMakeConfigFile, enableConfig );
+var init = W.composePromisers( doMakeConfigFile, enableConfig );
 
 // Features
 // ========
@@ -61,9 +61,6 @@ function enableConfig ( pideeConfig ) {
                 return settings[ key ];
             };
 
-            
-            
-            
             resolve( pideeConfig );
         });
     });
