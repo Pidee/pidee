@@ -3,7 +3,7 @@
 - [Getting Started with Pidee Service](#getting-started-with-pidee-service)
     - [Examples](#examples)
 - [Developers](#developers-how-to-communicate-with-pidee-service-)
-- [Using pidee without Pidee Service](#using-pidee-without-pidee-service)
+- [Using Pidee Board without Pidee Service](#using-pidee-board-without-pidee-service)
 
 ## Getting started with Pidee Service
 
@@ -83,7 +83,7 @@ The command, which is defined in the protocol documents, is `#foo led.yellow SET
 
 # Using Pidee Board without Pidee Service 
 
-Of course, you can ditch pidee-service all together and just use the GPIO on the rasppbery pi directly. Checkout the schmantic for the board (here)[../pcb/export/drawings/Pidee%20Schematic.pdf] and [wiring-pi](http://wiring-pi.com/) to interface with the GPIO.
+Of course, you can ditch pidee-service all together and just use the GPIO on the rasppbery pi directly. Checkout the schmantic for the board [here](../pcb/export/drawings/Pidee%20Schematic.pdf) and [wiring-pi](http://wiring-pi.com/) to interface with the GPIO.
 
 
 
