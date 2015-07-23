@@ -40,12 +40,17 @@ function loadPideeConfig ( connect ) {
 
 function doEnableDips ( connect ) {
     return W.promise( function ( resolve, reject ) {
+        var dipPins = connect.config.get( 'dipPins' );
+        dipPins.forEach( function ( p ) { wpi.pinMode( p, wiringPi.INPUT ); } );
+        dipPins.forEach( function ( p ) { wpi.pullUpDnControl( p, wiringPi.PUD_UP ); } );
         resolve( connect );
     });
 }
 
 function doEnabledButtons ( connect ) {
     return W.promise( function ( resolve, reject ) {
+        var buttonPins = connect.config.get( 'buttonPins' );
+        buttonPins
         resolve( connect );
     });
 }
