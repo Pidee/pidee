@@ -69,6 +69,11 @@ Error Codes
 - 8: Invalid value
 
 
+Testing Protocol in Terminal
+----------------------------
 
+```bash
+echo "#12341234 led SET 5" | nc -U /tmp/pidee.sock
+```
 
 
