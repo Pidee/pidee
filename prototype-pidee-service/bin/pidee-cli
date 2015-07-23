@@ -132,7 +132,7 @@ if [ $SHOULD_SUBSCRIBE -eq 1 ]; then
         print_help
         exit 1
     fi
-    echo "$TOKEN $DOMAIN GET" | nc -q -1 -U /tmp/pidee.sock
+    echo "$TOKEN $DOMAIN SUBSCRIBE" | nc -q -1 -U /tmp/pidee.sock
 fi
 
 if [ $SHOULD_SET -eq 1 ]; then

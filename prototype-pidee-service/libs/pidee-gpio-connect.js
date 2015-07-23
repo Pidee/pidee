@@ -81,7 +81,7 @@ function enableDip ( connect ) {
         // Add the generic dip stream
         dipStream = dipStream
             .map( function () {
-                return { domian: 'dip',  value: getDipState( connect ) };
+                return { domain: 'dip',  value: getDipState( connect ) };
             });
 
         connect.dipStreams.push( dipStream );
@@ -121,9 +121,7 @@ function enabledButton ( connect ) {
 
 function enableLeds ( connect ) {
     return W.promise( function ( resolve, reject ) {
-
-        connect.allStream.log();
-
+        
         var ledPins = connect.config.get( 'yrgLedPins' );
         var usePwm = connect.config.get( 'enablePwm' );
 

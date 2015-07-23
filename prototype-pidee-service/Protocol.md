@@ -67,7 +67,7 @@ Error Codes
 - 6: SET not allowed on domain
 - 7: SUBSCRIBE and UNSUBSCRIBE not allowed on domain
 - 8: Invalid value
-
+- 9: Subscription for token not found
 
 Testing Protocol in Terminal
 ----------------------------

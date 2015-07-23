@@ -126,9 +126,9 @@ function makeServer ( service ) {
         
         service.server = net.createServer( function( socket ) {
 
-            // Add subscriptions tokens
-            socket.subscriptions = [];
-
+            // Error
+            // =====
+            // Might be fast disconnecting client, safe to ingore unless presistant
             socket.on( 'error', function ( err ) {
                 console.log( 'Write error:', err );
             });
@@ -138,8 +138,13 @@ function makeServer ( service ) {
             var dataStream = Bacon.fromEvent( socket, 'data' )
                     .map( function ( data ) { return data.toString(); } )
                     .map( function ( str ) { return str.replace( '\n', ''  ); } )
-                    .map( function ( str ) { return str.split( ' ' ); } )
-                    .log();
+                    .map( function ( str ) { return str.split( ' ' ); } );
+
+            // Debug log
+            // =========
+            if ( service.isDebug ) {
+                dataStream.log();
+            }
 
             // Filter and send errors
             // ======================
@@ -249,13 +254,77 @@ function makeServer ( service ) {
                         });
                 });
 
+            // Subscriptions
+            // -------------
+            var subscriptionDisposersTokenHash = {};
+
             // SUBSCRIBE
             // ---------
-            var subscribeStream = dataStream.filter( W.partial( isMethod, 'SUBSCRIBE' ) );
+            dataStream
+                .filter( W.partial( isMethod, 'SUBSCRIBE' ) )
+                .onValue( function ( arr ) {
+                    var subscriptionStream = new Bacon.Bus();
+
+                    subscriptionStream.onValue( function ( data ) {
+                        sendPacket( socket, makePacket().token( getToken( arr ) ).domain( data.domain ).value( data.value ) );
+                    });
+                    
+                    // Find the stream to plug into
+                    var streamToJoin = null;
+
+                    if ( isDomain( 'all', arr ) ) {
+                        streamToJoin = service.connect.allStream;
+                    }
+                    else if ( isDomain( 'button', arr ) ) {
+                        streamToJoin = service.connect.buttonStreams[ 0 ];
+                    }
+                    else if ( isDomain( 'dip', arr ) ) {
+                        streamToJoin = service.connect.dipStreams[ 0 ];
+                    }
+                    else {
+                        W.range( 0, 7 ).forEach( function ( idx ) {
+                            if (  isDomain( 'dip.' + idx, arr ) ) {
+                                streamToJoin = service.connect.dipSwitchStreams[ idx ];
+                            }
+                        });
+                    }
+                    // Or error
+                    if ( streamToJoin === null ) {
+                        sendPacket( socket, makeErrorPacket().code( 7 ).message( '"SUBSCRIBE and UNSUBSCRIBE not allowed on this domain" E.g. you cannot SUBSCRBE to the LED value. You tried to subscribe to:' + getDomain( arr ) + '"' ).token( getToken( arr ) ) );
+                        return;
+                    }
+                    
+                    // Plug the stream
+                    subscriptionDisposersTokenHash[ getToken( arr ) ] = subscriptionStream.plug( streamToJoin );
+
+                    // Done
+                    sendPacket( socket, makePacket().token( getToken( arr ) ).isDone( true ) );
+                });
+
 
             // UNSUBSCRIBE
             // -----------
-            var unsubscribeStream = dataStream.filter( W.partial( isMethod, 'UNSUBSCRIBE' ) );
+            dataStream
+                .filter( W.partial( isMethod, 'UNSUBSCRIBE' ) )
+                .onValue( function ( arr ) {
+                    var streamDisposer = subscriptionDisposersTokenHash[ getToken( arr ) ];
+                    if ( W.isUndefined( streamDisposer ) ) {
+                        sendPacket( socket, makeErrorPacket().code( 9 ).message( '"Failed to find subscription for token"' ).token( getToken( arr ) ) );
+                        return;
+                    }
+                    streamDisposer();
+                    delete subscriptionDisposersTokenHash[ getToken( arr ) ];
+                });
+
+            // Clean up subscriptions when the client connection closes
+            // by disposing of any streams which have been plugged into
+            // a connect stream
+            socket.on( 'close', function () {
+                Object.keys( subscriptionDisposersTokenHash ).forEach( function ( hash ) {
+                    subscriptionDisposersTokenHash[ hash ]();
+                    delete subscriptionDisposersTokenHash[ hash ];
+                });  
+            });
 
             
         });
