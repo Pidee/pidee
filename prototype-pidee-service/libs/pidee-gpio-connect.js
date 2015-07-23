@@ -8,12 +8,19 @@ var W = require( 'w-js' );
 var PideeConfig = require( './pidee-config' );
 var PideeUtils = require( './pidee-utils' );
 var wiringPi = require( 'wiring-pi' );
+var Bacon = require( 'baconjs' );
 
 // Make & Init
 // ===========
 function make () {
     return {
-        verbose: false
+        verbose: false,
+        buttonThrottle: 25,
+        dipThrottle: 100,
+        dipSwitchStreams: [],
+        dipStreams: [],
+        buttonStreams: [],
+        allStream: new Bacon.Bus()
     };
 }
 
@@ -21,9 +28,9 @@ wiringPi.wiringPiSetupPhys();
 
 var init = W.composePromisers( loadPideeConfig,
                                PideeUtils.promiseWrap( wiringPi.wiringPiSetupPhys ),
-                               doEnableDips,
-                               doEnabledButtons,
-                               doEnableLeds );
+                               enableDip,
+                               enabledButton,
+                               enableLeds );
 
 // Promisers
 // =========
@@ -40,25 +47,82 @@ function loadPideeConfig ( connect ) {
     });
 }
 
-function doEnableDips ( connect ) {
+function enableDip ( connect ) {
     return W.promise( function ( resolve, reject ) {
         var dipPins = connect.config.get( 'dipPins' );
-        dipPins.forEach( function ( p ) { wpi.pinMode( p, wiringPi.INPUT ); } );
-        dipPins.forEach( function ( p ) { wpi.pullUpDnControl( p, wiringPi.PUD_UP ); } );
+
+        // Create the genertic stream
+        var dipStream = new Bacon.Bus();
+
+        dipPins.forEach( function ( p, idx ) {
+            wiringPi.pinMode( p, wiringPi.INPUT );
+            wiringPi.pullUpDnControl( p, wiringPi.PUD_UP );
+
+            var stream = new Bacon.Bus();
+
+            var dipSwitchStream = stream
+                .throttle( connect.dipThrottle )
+                .map( function ( delta ) { return wiringPi.digitalRead( p ); } )
+                .map( function ( v ) { return v === 0 ? 1 : 0; } )
+                .map( function ( v ) { return { domain: 'dip.' + idx, value: v }; } );
+
+            // Merge streams
+            dipStream = dipStream.merge( dipSwitchStream );
+            connect.allStream = connect.allStream.merge( dipSwitchStream );
+            
+            // Push events to the stream
+            wiringPi.wiringPiISR( p, wiringPi.INT_EDGE_BOTH, function ( delta ) {
+                stream.push( delta );
+            });
+
+            connect.dipSwitchStreams.push( dipSwitchStream );
+        });
+
+        // Add the generic dip stream
+        dipStream = dipStream
+            .map( function () {
+                return { domian: 'dip',  value: getDipState( connect ) };
+            });
+
+        connect.dipStreams.push( dipStream );
+        connect.allStream = connect.allStream.merge( dipStream );
+        
         resolve( connect );
     });
 }
 
-function doEnabledButtons ( connect ) {
+function enabledButton ( connect ) {
     return W.promise( function ( resolve, reject ) {
         var buttonPins = connect.config.get( 'buttonPins' );
-        buttonPins
+        buttonPins.forEach( function ( p ) {
+            wiringPi.pinMode( p, wiringPi.INPUT );
+            wiringPi.pullUpDnControl( p, wiringPi.PUD_UP );
+
+            var stream = new Bacon.Bus();
+
+            var buttonStream = stream
+                .throttle( connect.buttonThrottle )
+                .map( function ( delta ) { return wiringPi.digitalRead( p ); } )
+                .map( function ( v ) { return v === 0 ? 1 : 0; } )
+                .map( function ( v ) { return { domain: 'button', value: v }; } );
+            
+            // Push events to the stream
+            wiringPi.wiringPiISR( p, wiringPi.INT_EDGE_BOTH, function ( delta ) {
+                stream.push( delta );
+            });
+
+            connect.buttonStreams.push( buttonStream );
+            connect.allStream = connect.allStream.merge( buttonStream );
+
+        });
         resolve( connect );
     });
 }
 
-function doEnableLeds ( connect ) {
+function enableLeds ( connect ) {
     return W.promise( function ( resolve, reject ) {
+
+        connect.allStream.log();
 
         var ledPins = connect.config.get( 'yrgLedPins' );
         var usePwm = connect.config.get( 'enablePwm' );
@@ -67,7 +131,8 @@ function doEnableLeds ( connect ) {
             if ( connect.verbose ) { PideeUtils.report( 'Debug', 'Enabling leds with PWM' ); }
             ledPins.forEach( function ( p ) { wiringPi.softPwmCreate( p, 10, 10 ); } );
         } else {
-            if ( connect.verbose ) { PideeUtils.report( 'Debug', 'Enabling leds without PWM', wiringPi.OUTPUT ); }
+            if ( connect.verbose ) { PideeUtils.report( 'Debug', 'Enabling leds without PWM' ); }
+            ledPins.forEach( function ( p ) { wiringPi.pinMode( p, wiringPi.OUTPUT ); } );
         }
 
         resolve( connect );
@@ -102,7 +167,7 @@ function setLedState( connect, ledIdx, scalar ) {
 }
 
 function getButtonState ( connect ) {
-    return wiringPi.digitalRead( connect.config.get( 'buttonPins' )[ 0 ] );
+    return wiringPi.digitalRead( connect.config.get( 'buttonPins' )[ 0 ] ) === 1 ? 0 : 1;
 }
 
 function getDipState ( connect ) {
@@ -110,9 +175,9 @@ function getDipState ( connect ) {
     
     return [ 0, 1, 2, 3, 4, 5, 6, 7 ]
         .map( function ( idx ) {
-            console.log( 'READ', idx, dipPins[ idx ], wiringPi.digitalRead( dipPins[ idx ] ) );
             return wiringPi.digitalRead( dipPins[ idx ] );
         })
+        .map( function ( v ) { return v === 1 ? 0 : 1; } )
         .reduce( function ( acc, value, idx ) {
             var mask = 1 << idx;
             if ( value ) {

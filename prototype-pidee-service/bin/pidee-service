@@ -128,8 +128,6 @@ function makeServer ( service ) {
 
             // Add subscriptions tokens
             socket.subscriptions = [];
-            
-            PideeUtils.report( "CONNECTION", 'New client connection' );
 
             socket.on( 'error', function ( err ) {
                 console.log( 'Write error:', err );
@@ -139,12 +137,14 @@ function makeServer ( service ) {
             // =====================
             var dataStream = Bacon.fromEvent( socket, 'data' )
                     .map( function ( data ) { return data.toString(); } )
-                    .map( function ( str ) { return str.split( ' ' ); } );
+                    .map( function ( str ) { return str.replace( '\n', ''  ); } )
+                    .map( function ( str ) { return str.split( ' ' ); } )
+                    .log();
 
             // Filter and send errors
             // ======================
             var f = W.partial( filterOrDoSendError, socket );
-            var invalidMsg = "'Could not parse packet. May be invalid '";
+            var invalidMsg = '"Could not parse packet. May be invalid ';
             
             dataStream = f( dataStream, hasValidToken, 1, W.join( invalidMsg, 'or missing token i.e. make sure packet starts with a token which beginning with `#`"' ) );
             dataStream = f( dataStream, hasValidDomain, 2, W.join( invalidMsg, 'or missing domain i.e. domain should be like: `led.yellow`, `button`, `dip.3`"' ) );
@@ -159,15 +159,15 @@ function makeServer ( service ) {
 
             // GET
             // ---
-            var getStream = dataStream.filter( W.partial( isMethod, 'GET' ) ).log( 'GET' );
+            var getStream = dataStream.filter( W.partial( isMethod, 'GET' ) );
 
             // ### Button
             getStream
                 .filter( W.partial( isDomain, 'button' ) )
                 .onValue( function ( arr ) {
-                //     var buttonState = PideeGpioConnect.getButtonState( service.connect );
-                //     sendPacket( socket, makePacket().token( getToken( arr ) ).domain( getDomain( arr ) ).value( buttonState ) );
-                //     sendPacket( socket, makePacket().token( getToken( arr ) ).isDone( true ) );
+                    var buttonState = PideeGpioConnect.getButtonState( service.connect );
+                    sendPacket( socket, makePacket().token( getToken( arr ) ).domain( getDomain( arr ) ).value( buttonState ) );
+                    sendPacket( socket, makePacket().token( getToken( arr ) ).isDone( true ) );
                 });
 
             // ### Dip
@@ -191,16 +191,29 @@ function makeServer ( service ) {
                         });
                 });
 
-            // All
-            // ----
-            var allStream = dataStream.filter( W.partial( isDomain, '*' ) )
-                .onValue( function () {
-                   
+            // ### All
+            getStream
+                .filter( W.partial( isDomain, 'all' ) )
+                .onValue( function ( arr ) {
+                    // Button
+                    var buttonState = PideeGpioConnect.getButtonState( service.connect );
+                    sendPacket( socket, makePacket().token( getToken( arr ) ).domain( 'button' ).value( buttonState ) );
+                    // Dip
+                    var dipState = PideeGpioConnect.getDipState( service.connect );
+                    sendPacket( socket, makePacket().token( getToken( arr ) ).domain( 'dip' ).value( dipState ) );
+                    // Dip Switches
+                    [ 0, 1, 2, 3, 4, 5, 6, 7 ]
+                        .forEach( function ( dipNumber, idx ) {
+                            var dipSwitchState = PideeGpioConnect.getDipSwitchState( service.connect, dipNumber );
+                            sendPacket( socket, makePacket().token( getToken( arr ) ).domain( 'dip.' + idx ).value( dipSwitchState ) );
+                        });
+                    // Done
+                    sendPacket( socket, makePacket().token( getToken( arr ) ).isDone( true ) );
                 });
 
             // SET
             // ---
-            var setStream = dataStream.filter( W.partial( isMethod, 'SET' ) ).log( 'SET' );
+            var setStream = dataStream.filter( W.partial( isMethod, 'SET' ) );
 
             // ### Led
             setStream
@@ -223,11 +236,9 @@ function makeServer ( service ) {
             [ 'yellow', 'green', 'red' ]
                 .forEach( function ( subdomain, idx ) {
                     setStream
-                        .log( 'Specific led pre filter' )
                         .filter( W.partial( isDomain, 'led.' + subdomain ) )
                         .onValue( function ( arr ) {
                             var v = Number( getValue( arr ) );
-                            console.log( arr, getValue( arr ), v );
                             if ( !isNaN( v ) && v >=0 && v <= 1 ) {
                                 PideeGpioConnect.setLedState( service.connect, idx, v );
                                 sendPacket( socket, makePacket().token( getToken( arr ) ).isDone( true ) );
@@ -287,7 +298,7 @@ function hasValidToken ( arr ) {
 }
 
 function hasValidDomain ( arr ) {
-   return  [ '*', 'led', 'led.yellow', 'led.green', 'led.red', 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'button' ].indexOf( getDomain( arr ) ) > -1;
+   return  [ 'all', 'led', 'led.yellow', 'led.green', 'led.red', 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'button' ].indexOf( getDomain( arr ) ) > -1;
 }
 
 function hasValidMethod ( arr ) {
@@ -302,7 +313,7 @@ function hasValidDomainForGetMethod ( arr ) {
     if ( getMethod( arr ) !== 'GET' ) {
         return true;
     }
-    return [ 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'button' ].indexOf( getDomain( arr ) ) > -1;
+    return [ 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'button', 'all' ].indexOf( getDomain( arr ) ) > -1;
 }
 
 function hasValidDomainForSetMethod ( arr ) {
@@ -316,7 +327,7 @@ function hasValidDomainForSubscriptionMethods ( arr ) {
     if ( getMethod( arr ) !== 'SUBSCRIBE' ||  getMethod( arr ) !== 'UNSUBSCRIBE' ) {
         return true;
     }
-    return [ 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'button', '*' ].indexOf( getDomain( arr ) ) > -1;
+    return [ 'dip', 'dip.0', 'dip.1', 'dip.2', 'dip.3', 'dip.4', 'dip.5', 'dip.6', 'dip.7', 'button', 'all' ].indexOf( getDomain( arr ) ) > -1;
 }
 
 function isMethod ( method, arr ) {

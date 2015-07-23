@@ -1,140 +1,152 @@
-#!/usr/bin/env node
-// Pidee Cli
-// =========
-// Command line interface to Pidee
-
-// Modules
-// =======
-var W = require( 'w-js' );
-var commander = require( 'commander' );
-var net = require( 'net' );
-
-var options = {
-    socketFilePath: '/tmp/pidee.sock'
-};
-
-commander
-    .version( require( './../package' ).version );
-
-commander
-    .command( 'set [domain] [value]' )
-    .description( 'e.g. `set led.yellow 1` or `set led 5`' )
-    .action( function ( domain, value, options ) {
-        
-        if ( typeof domain !== 'string' ) {
-            return exitWithError( "Error domain not recognised. Should be 'led', 'led.red', 'led.green' or 'led.yellow'" );
-        }
-
-        if ( typeof value === 'undefined' ) {
-            return exitWithError( "Error color value not set" );
-        }
-
-        value = parseFloat( value, 10 );
-        
-        if ( isNaN( value ) ) {
-            return exitWithError( "Error could not parse value." );
-        }
-
-        if ( value < 0 || value > 8 ) {
-            return exitWithError( "Error value should be [0.0,1.0] or for domain 'led' [0,8]" );
-        }
-
-        makeOpenSocketConnection()
-            .success( function ( socket ) {
-                socket.on( 'data', function ( d ) {
-                    console.log( 'Data:', d.toString( 'ascii' ) );
-                });
-                var packetStr = W.join( '#', Date.now(), ' ', domain, ' SET ', value );
-                console.log( 'Writing:', packetStr );
-                socket.write( packetStr, 'ascii', function () {
-                    console.log( 'Should wait for a response' );
-                    socket.end();
-                });
-            })
-            .error( function () {
-                exitWithError( ' Are sure `pidee-service` is running?\n  Could not connect. ' );
-            });
-        
-    });
-
-commander
-    .command( 'get [domain]' )
-    .description( 'eg. `get button`, `get dip`, `get dip.7`' )
-    .action( function ( domain ) {
-        if ( typeof domain !== 'string' ) {
-            return exitWithError( "Error domain not recognised. Should be '*', 'dip', 'button' for example" );
-        }
-
-        makeOpenSocketConnection()
-            .success( function ( socket ) {
-                socket.on( 'data', function ( d ) {
-                    console.log( 'Data:', d.toString( 'ascii' ) );
-                });
-                var packetStr = W.join( '#', Date.now(), ' ', domain, ' GET ' );
-                console.log( 'Writing:', packetStr );
-                socket.write( packetStr, 'ascii', function () {
-                    console.log( 'Should wait for a response' );
-                    socket.end();
-                });
-            })
-            .error( function () {
-                exitWithError( ' Are sure `pidee-service` is running?\n  Could not connect. ' );
-            });
-        
-    });
+#!/bin/bash
 
 
-// commander
-//     .command( 'dip' )
-//     .description( 'reads all DIP switch values as an unsigned byte, switch 1 is LSB' )
-//     .action( function () {
-//         console.log( 'should read dip' );
-//     });
+function print_help {
+    printf "\n  Usage: pidee-cli [options] [command]\n"
 
-// commander
-//     .command( 'switch [switch-number]' )
-//     .description( 'reads a switch value as either 0 or 1' )
-//     .action( function ( switchNumber ) {
-        
-//         if ( typeof switchNumber === 'undefined' ) {
-//             return exitWithError( "Error could not parse switch number" );
-//         }
+    printf "\n  Commands \n\n"
+    printf "    get [domain]         e.g. 'pidee-cli get dip.3'\n"
+    printf "    set [domain] [value] e.g. 'pidee-cli set led.yellow 1'\n"
+    printf "    subscribe [domain]   e.g. 'pidee-cli subscribe button'\n"
 
-//         switchNumber = parseFloat( switchNumber, 10 );
+    printf "\n  Options:\n\n"
+    printf "    -h, --help           Show this help information\n"
+    printf "    -l, --list-domains   List all domains\n"
 
-//         if ( isNaN( switchNumber ) ) {
-//             return exitWithError( "Error could not parse value. It should be between 0 and 1" );
-//         }
-
-//         if ( switchNumber < 0 || switchNumber > 6 ) {
-//             return exitWithError( "Error switch number must be between 0 and 6" );
-//         }
-        
-//         console.log( 'should read dip switch number', switchNumber );
-//     });
-
-commander.parse( process.argv );
-
-// Socket Connection
-
-function makeOpenSocketConnection () {
-    return W.promise( function ( resolve, reject ) {
-        var socket;
-        socket = net.createConnection( options.socketFilePath, function () {
-            resolve( socket );
-        });
-        socket.on( 'error', reject );
-    });
+    printf "\n"
 }
 
-// Utils
-// =====
+function print_domains {
+    printf "\n Domains:\n\n"
+    printf " ┌───────────────────────┐\n"
+    printf " │ Domains     │ Range   │\n"
+    printf " │─────────────┼─────────│\n"
+    printf " │ all         │         │\n"
+    printf " │ led         │ [0,8]   │\n"
+    printf " │ led.yellow  │ [0,1]   │\n"
+    printf " │ led.green   │ [0,1]   │\n"
+    printf " │ led.red     │ [0,1]   │\n"
+    printf " │ dip         │ [0,255] │\n"
+    printf " │ dip.0       │ [0,1]   │\n"
+    printf " │ dip.1       │ [0,1]   │\n"
+    printf " │ dip.2       │ [0,1]   │\n"
+    printf " │ dip.3       │ [0,1]   │\n"
+    printf " │ dip.4       │ [0,1]   │\n"
+    printf " │ dip.5       │ [0,1]   │\n"
+    printf " │ dip.6       │ [0,1]   │\n"
+    printf " │ dip.7       │ [0,1]   │\n"
+    printf " │ button      │ [0,1]   │\n"
+    printf " └───────────────────────┘\n\n"
 
-function exitWithError ( messages ) {
-    messages = W.toArray( arguments );
-    messages.unshift( '\nError:\n' );
-    messages.push( '\n' );
-    
-    console.error.apply( console, messages );
-    process.exit( 1 );
+    printf "  Methods for domain:\n\n"
+    printf " ┌─────────────────────────────────┐\n"
+    printf " │         │ GET │ SET │ SUBSCRIBE │\n"
+    printf " │─────────┼─────┼─────┼───────────│\n"
+    printf " │ all     │  x  │     │     x     │\n"
+    printf " │ led     │     │  x  │           │\n"
+    printf " │ dip     │  x  │     │     x     │\n"
+    printf " │ button  │  x  │     │     x     │\n"
+    printf " └─────────────────────────────────┘\n\n"
 }
+
+# If no options, show help and quit
+if [[ $# -eq 0 ]] ; then
+    print_help
+    exit 0
+fi
+
+# Parse options
+SHOW_HELP=0
+LIST_DOMAINS=0
+COMMAND=""
+DOMAIN=""
+VALUE=""
+
+for a in "$@"
+do
+    if [ $a = "-h" ] || [ $a = "--help" ]; then
+        SHOW_HELP=1 
+    elif [ $a = "-l" ] || [ $a = "--list-domains" ]; then
+        LIST_DOMAINS=1
+    elif [ $a = "-hl" ] || [ $a = "-lh" ]; then
+        SHOW_HELP=1
+        LIST_DOMAINS=1
+    elif [ -z $COMMAND ]; then
+        COMMAND=$a
+    elif [ -z $DOMAIN ]; then
+        DOMAIN=$a
+    elif [ -z $VALUE ]; then
+        VALUE=$a
+    fi
+done
+
+# Show help
+if [ $SHOW_HELP -eq 1 ]; then
+    print_help
+fi
+
+# List domains
+if [ $LIST_DOMAINS -eq 1 ]; then
+    print_domains
+fi
+
+# Lowercase Command
+# COMMAND= $( tr '[:upper:]' '[:lower:]' $COMMAND )
+
+SHOULD_GET=0
+SHOULD_SET=0
+SHOULD_SUBSCRIBE=0
+
+if [[ -n $COMMAND ]]; then
+    if [ $COMMAND = "get" ]; then
+        SHOULD_GET=1
+    elif [ $COMMAND = "set" ]; then
+        SHOULD_SET=1
+    elif [ $COMMAND = "subscribe" ]; then
+        SHOULD_SUBSCRIBE=1
+    else
+        if [ $SHOW_HELP -eq 0 ] && [ $LIST_DOMAINS -eq 0 ]; then
+            printf "Error: did not understand command\n" 1>&2
+            print_help
+            exit 1
+        fi
+    fi
+fi
+
+# Actions
+
+TOKEN=#`date +"%T"`
+
+if [ $SHOULD_GET -eq 1 ]; then
+    if [[ -z $DOMAIN ]]; then
+        printf "Error: missing domain to get\n"
+        print_help
+        exit 1
+    fi
+    echo "$TOKEN $DOMAIN GET" | nc -U /tmp/pidee.sock
+fi
+
+if [ $SHOULD_SUBSCRIBE -eq 1 ]; then
+    if [[ -z $DOMAIN ]]; then
+        printf "Error: missing domain to subscribe\n"
+        print_help
+        exit 1
+    fi
+    echo "$TOKEN $DOMAIN GET" | nc -q -1 -U /tmp/pidee.sock
+fi
+
+if [ $SHOULD_SET -eq 1 ]; then
+    if [[ -z $DOMAIN ]]; then
+        printf "Error: missing domain\n" 1>&2
+        print_help
+        exit 1
+    fi
+    if [[ -z $VALUE ]]; then
+        printf "Error: missing value\n" 1>&2
+        exit 1
+    fi
+    echo "$TOKEN $DOMAIN SET $VALUE" | nc -U /tmp/pidee.sock
+fi
+
+
+
