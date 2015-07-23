@@ -12,7 +12,9 @@ var wiringPi = require( 'wiring-pi' );
 // Make & Init
 // ===========
 function make () {
-    return {};
+    return {
+        verbose: false
+    };
 }
 
 wiringPi.wiringPiSetupPhys();
@@ -58,16 +60,14 @@ function doEnabledButtons ( connect ) {
 function doEnableLeds ( connect ) {
     return W.promise( function ( resolve, reject ) {
 
-        var ledPins = connect.config.get( 'ygrLedPins' );
+        var ledPins = connect.config.get( 'yrgLedPins' );
         var usePwm = connect.config.get( 'enablePwm' );
 
         if ( usePwm ) {
-            PideeUtils.report( 'Debug', 'Enabling leds with PWM' );
-            // ledPins.forEach( function ( p ) { wiringPi.pinMode( p, wiringPi.SOFT_PWM_OUTPUT ); } );
+            if ( connect.verbose ) { PideeUtils.report( 'Debug', 'Enabling leds with PWM' ); }
             ledPins.forEach( function ( p ) { wiringPi.softPwmCreate( p, 10, 10 ); } );
         } else {
-            PideeUtils.report( 'Debug', 'Enabling leds without PWM', wiringPi.OUTPUT );
-            ledPins.forEach( function ( p ) { console.log( p ); wiringPi.pinMode( p, wiringPi.OUTPUT ); } );
+            if ( connect.verbose ) { PideeUtils.report( 'Debug', 'Enabling leds without PWM', wiringPi.OUTPUT ); }
         }
 
         resolve( connect );
@@ -81,8 +81,10 @@ function setLedState( connect, ledIdx, scalar ) {
 
     if ( typeof scalar === 'boolean' ) { scalar = scalar ? 1 : 0; }
     
-    var ledPins = connect.config.get( 'ygrLedPins' );
+    var ledPins = connect.config.get( 'yrgLedPins' );
     var usePwm = connect.config.get( 'enablePwm' );
+    var high = connect.config.get( 'ledOnIsHigh' ) ? 1 : 0;
+    var low = connect.config.get( 'ledOnIsHigh' ) ? 0 : 1;
 
     if ( ledIdx < 0 || ledIdx >= ledPins.length ) {
         PideeUtils.report( 'Error', 'Attempted to set led idx', ledIdx );
@@ -90,14 +92,40 @@ function setLedState( connect, ledIdx, scalar ) {
     }
     
     if ( connect.config.get( 'enablePwm' ) ) {
-        PideeUtils.report( 'Debug', 'Setting PWM led idx:', ledIdx, 'value:',  Math.floor( W.map( scalar, 1, 0, 0, 1024, true ) ), 'pin:', ledPins[ ledIdx ] );
+        if ( connect.verbose ) { PideeUtils.report( 'Debug', 'Setting PWM led idx:', ledIdx, 'value:',  Math.floor( W.map( scalar, 1, 0, 0, 1024, true ) ), 'pin:', ledPins[ ledIdx ] ); }
         wiringPi.softPwmWrite( ledPins[ ledIdx ], Math.floor( W.map( scalar, 1, 0, 0, 10, true ) ) );
     } else {
-        PideeUtils.report( 'Debug', 'Setting non PWM led idx:', ledIdx, 'value:', scalar >= 0.5 ? wiringPi.LOW : wiringPi.HIGH, 'pin:', ledPins[ ledIdx ] );
-        wiringPi.digitalWrite( ledPins[ ledIdx ], scalar >= 0.5 ? wiringPi.LOW : wiringPi.HIGH );
+        if ( connect.verbose ) { PideeUtils.report( 'Debug', 'Setting non PWM led idx:', ledIdx, 'value:', scalar >= 0.5 ? wiringPi.LOW : wiringPi.HIGH, 'pin:', ledPins[ ledIdx ] ); }
+        wiringPi.digitalWrite( ledPins[ ledIdx ], scalar >= 0.5 ? wiringPi.HIGH : wiringPi.LOW );
     }
 
 }
+
+function getButtonState ( connect ) {
+    return wiringPi.digitalRead( connect.config.get( 'buttonPins' )[ 0 ] );
+}
+
+function getDipState ( connect ) {
+    var dipPins = connect.config.get( 'dipPins' );
+    
+    return [ 0, 1, 2, 3, 4, 5, 6, 7 ]
+        .map( function ( idx ) {
+            console.log( 'READ', idx, dipPins[ idx ], wiringPi.digitalRead( dipPins[ idx ] ) );
+            return wiringPi.digitalRead( dipPins[ idx ] );
+        })
+        .reduce( function ( acc, value, idx ) {
+            var mask = 1 << idx;
+            if ( value ) {
+                acc |= mask;
+            }
+            return acc;
+        }, 0 );
+}
+
+function getDipSwitchState ( connect, idx ) {
+    return wiringPi.digitalRead( connect.config.get( 'dipPins' )[ idx ] );
+}
+
 
 // Export
 // ======
@@ -105,5 +133,9 @@ function setLedState( connect, ledIdx, scalar ) {
 module.exports = {
     make: make,
     init: init,
-    setLedState: setLedState
+    setLedState: setLedState,
+    getButtonState: getButtonState,
+    getDipState: getDipState,
+    getDipSwitchState: getDipSwitchState
+    
 };

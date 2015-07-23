@@ -21,7 +21,7 @@ shopt -s extglob;
 # done
 
 ## .deb destination dir (arg or current dir)
-deb_destination_dir=${1:-./~debs}
+deb_destination_dir=./~debs
 
 ## Get the absolute parent dir of this file
 # http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in?page=1&tab=votes#tab-top
@@ -55,6 +55,8 @@ function error_exit {
 		esac
 	done
 
+	>&2 echo "$package_version"
+
 	## Check args
 	# stub
 
@@ -63,7 +65,6 @@ function error_exit {
 	hash fpm 2>/dev/null || { printf >&2 "Ruby gem \"fpm\" is required, but it's not installed. Aborting. Please run:\n$ gem install fpm\n"; exit 1; }
 	if [[ $(uname -s) == "Darwin" ]]; then
 		hash gtar 2>/dev/null || { printf >&2 "\"gtar\" is required, but it's not installed. It's available in brew as \"gnu-tar\" if you are using OS X\n"; exit 1; }
-		hash dpkg 2>/dev/null || { printf >&2 "\"dpkg\" is required, but it's not installed. It's available in brew as \"dpkg\" if you are using OS X\n"; exit 1; }
 	fi
 
 	## Temporary work dir
@@ -85,26 +86,18 @@ function error_exit {
 		--force \
 		--verbose \
 		--name "pidee" \
-		--version "1.0.0" \
+		--version "$package_version" \
 		--vendor "The Workers" \
 		--url "http://theworkers.net/pidee" \
 		--maintainer "Tommaso Lanza <pidee@theworkers.net>" \
 		--provides "pidee" \
 		--license "MIT" \
 		--description "Support package for the Pidee Raspberry Pi add-on board" \
-		--deb-init $this_script_dir/assets/pidee.init \
 		--before-install $this_script_dir/assets/preinst \
 		--after-install $this_script_dir/assets/postinst \
 		--before-remove $this_script_dir/assets/prerm \
 		--after-remove $this_script_dir/assets/postrm \
 		-C $temp_fpm_dir
-	popd
-
-	## Create a package index file Packages.gz
-	>&2 echo "—— Generating package index file…"
-	pushd $deb_destination_dir
-	dpkg-scanpackages . 1> Packages 2> /dev/null
-	gzip --best --force --keep Packages
 	popd
 
 	## Cleanup after yourself!

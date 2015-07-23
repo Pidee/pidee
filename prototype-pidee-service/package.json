@@ -11,8 +11,9 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "dependencies": {
-    "w-js": "~4.41.2",
-    "wiring-pi": "git://github.com/nekuz0r/wiring-pi.git#a186b9ce0135ca",
-    "commander": "~2.8.1"
+    "baconjs": "^0.7.70",
+    "commander": "2.8.1",
+    "w-js": "^4.43.0",
+    "wiring-pi": "git://github.com/nekuz0r/wiring-pi.git#a186b9ce0135ca"
   }
 }

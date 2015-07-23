@@ -41,7 +41,19 @@ function error_exit {
 	hash md2man-roff 2>/dev/null || { printf >&2 "Ruby gem \"md2man\" is required, but it's not installed. Aborting. Please run:\n$ gem install md2man\n"; exit 1; }
 
 	## Set the pidee service dir to argument or default
-	pidee_source_dir=${1:-$this_script_dir/../prototype-pidee-service}
+	pidee_source_dir="$this_script_dir/../prototype-pidee-service"
+
+	## Update node modules
+	## https://docs.npmjs.com/cli/prune
+	## https://docs.npmjs.com/cli/dedupe
+	pushd $pidee_source_dir
+	npm_prefix=$(npm prefix) &> /dev/null
+	pushd $npm_prefix
+	npm prune --production
+	npm install --silent
+	npm dedupe
+	popd
+	popd
 
 	## Get a temporary directory to work in
 	temp_dir=$( mktemp -dt "$(basename -- "$0").$$.XXXX" )
@@ -56,6 +68,7 @@ function error_exit {
 	mkdir -p $temp_dir/usr/share/doc/pidee
 	mkdir -p $temp_dir/usr/share/man/man1
 	mkdir -p $temp_dir/usr/share/man/man8
+	mkdir -p $temp_dir/var/lib/pidee
 
 	## Copy Pidee source files to /usr/lib/pidee/pidee
 	>&2 echo "—— Copying source files…"
@@ -76,6 +89,12 @@ function error_exit {
 	chmod +x $temp_dir/usr/bin/pidee
 	chmod +x $temp_dir/usr/sbin/pidee-service
 
+	## Copy init and service scripts to destination (isntall scripts will symlink later into canonical paths)
+	>&2 echo "—— Copying init and service scripts…"
+	cp -r $this_script_dir/assets/pidee.init $temp_dir/usr/lib/pidee/pidee.init
+	cp -r $this_script_dir/assets/pidee.service $temp_dir/usr/lib/pidee/pidee.service
+	chmod 755 $temp_dir/usr/lib/pidee/pidee.init
+
 	## Copy README.md to /usr/doc/pidee/README.md
 	>&2 echo "—— Copying docs…"
 	cp -r $temp_dir/usr/lib/pidee/pidee/README* $temp_dir/usr/share/doc/pidee
@@ -88,27 +107,18 @@ function error_exit {
 	popd
 
 	## Download, untar and copy Node JS from Joyent. Last precompiled Raspberry Pi version is 0.10.28. Then they stopped.
-	>&2 echo "—— Downloading Node from Joyent…"
+	>&2 echo "—— Unpacking node_armhf tarball…"
 	node_temp_dir=$( mktemp -dt "$(basename -- "$0").$$.XXXX" )
 	pushd $node_temp_dir
-	node_version="v0.10.28"
-	node_architecture="linux-arm-pi"
-	# node_version="v0.12.5"
-	# node_architecture="linux-x64"
-	wget \
-		--server-response=off \
-		--no-verbose \
-		--quiet \
-		--output-document="node.tar.gz" \
-		"http://nodejs.org/dist/$node_version/node-$node_version-$node_architecture.tar.gz"
 	mkdir -p node
-	tar xf node.tar.gz --directory node --strip 1
+	tar xf $this_script_dir/assets/node_armhf.tar.gz --directory node --strip 1
 	cp -r node/* $temp_dir/usr/lib/pidee/node
 	popd
+	rm -rf $node_temp_dir
 
 
 	## Tarball it!
-	>&2 echo "—— Creating tarball…"
+	>&2 echo "—— Creating pidee tarball…"
 	archive_dir=$( mktemp -dt "$(basename -- "$0").$$.XXXX" )
 	pushd $temp_dir
 	tar czf $archive_dir/pidee.tar.gz .

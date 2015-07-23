@@ -14,15 +14,16 @@ function  make () {
     return {
         src: '/etc/pidee.conf',
         defaultSettings: {
-            ygrLedPins: [ 36, 38, 40 ],
+            yrgLedPins: [ 35, 33, 32 ],
             dipPins: [ 31, 29, 22, 18, 16, 15, 13, 11 ],
             enablePwm: false,
-            buttonPins: [ 12 ]
+            buttonPins: [ 12 ],
+            ledOnIsHigh: false
         }
     };
 }
 
-var init = W.composePromisers( PideeUtils.confirmSuperUserPromise, doMakeConfigFile, enableConfig );
+var init = W.composePromisers( doMakeConfigFile, enableConfig );
 
 // Features
 // ========
@@ -60,9 +61,6 @@ function enableConfig ( pideeConfig ) {
                 return settings[ key ];
             };
 
-            
-            
-            
             resolve( pideeConfig );
         });
     });
