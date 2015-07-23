@@ -1,6 +1,11 @@
 # Pidee Service
 
-## Getting started
+- [Getting Started with Pidee Service](#getting-started-with-pidee-service)
+    - [Examples](#examples)
+- [Developers](#developers-how-to-communicate-with-pidee-service-)
+- [Using pidee without Pidee Service](#using-pidee-without-pidee-service)
+
+## Getting started with Pidee Service
 
 You can likely skip step one if pidee has been install via the package manager.
 
@@ -73,7 +78,12 @@ In the examples above `pidee-cli` sends commands to the pidee service via a unix
 echo "#foo led.yellow SET 1" | nc -U /tmp/pidee.sock
 ```
 
-The command, which is defined in the protocol documents, is `#foo led.yellow SET 1`. `nc` is a utility to write to the socket. Most programming languages will give you a way to do this. Of course, you can ditch pidee-service all together and just use the GPIO on the rasppbery pi directly. Checkout the schmantic for the board here LINK TO GO HERE.
+The command, which is defined in the protocol documents, is `#foo led.yellow SET 1`. `nc` is a utility to write to the socket. Most programming languages will give you a way to do this.
+
+
+# Using Pidee Board without Pidee Service 
+
+Of course, you can ditch pidee-service all together and just use the GPIO on the rasppbery pi directly. Checkout the schmantic for the board (here)[../pcb/export/drawings/Pidee%20Schematic.pdf] and [wiring-pi](http://wiring-pi.com/) to interface with the GPIO.
 
 
 

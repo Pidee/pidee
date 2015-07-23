@@ -2,6 +2,8 @@
 
 # The breakout board for the Raspberry Pi with switches, a button and 3 LEDs. #
 
+Current getting started guide is [here](pidee-service/README.md)
+
 ## How do you pronounce Pidee? ##
 
 _Pie-dee_
