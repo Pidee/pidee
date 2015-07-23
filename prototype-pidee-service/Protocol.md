@@ -27,6 +27,7 @@ Domains
 
 | Domain          | Value Range | 
 |-----------------|:-----------:|
+| *               |             |
 | __led__         | [0,8]       |
 | __led.yellow__  | [0,1]       |
 | __led.green__   | [0,1]       |
