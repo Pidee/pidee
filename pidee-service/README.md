@@ -4,7 +4,7 @@
 
 You can likely skip step one if pidee has been install via the package manager.
 
-1. Run **pidee-service** with `sudo bin/pidee-service`*
+1. Run **pidee-service** with `sudo bin/pidee-service`
 2. In another session, try out **pidee-cli** with `bin/pidee-cli`
 
 ### Examples
