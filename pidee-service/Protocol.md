@@ -15,7 +15,7 @@ Overview
 
 _Note: `<REQ-TOKEN>` is a word starting with #
 
-## Responce
+## Response
 
 - `ERROR <CODE> <MESSAGE>` _Error, for request without token_
 - `<REQ-TOKEN> ERROR <CODE> <MESSAGE>` _Error, for request with token_
