@@ -232,7 +232,7 @@ function makeServer ( service ) {
                         sendPacket( socket, makePacket().token( getToken( arr ) ).isDone( true ) );
                     }
                     else {
-                        sendPacket( socket, makeErrorPacket().code( 8 ).message( 'Invalid value. Should be between 1 and 8. You sent: ' + v ).token( getToken( arr ) ) );
+                        sendPacket( socket, makeErrorPacket().code( 8 ).message( 'Invalid value. Should be between 1 and 7. You sent: ' + v ).token( getToken( arr ) ) );
                     }
                     
                 });
