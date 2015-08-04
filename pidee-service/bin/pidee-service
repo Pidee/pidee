@@ -125,6 +125,10 @@ function makeServer ( service ) {
     return W.promise( function ( resolve, reject ) {
         
         service.server = net.createServer( function( socket ) {
+            
+            if ( service.isDebug ) {
+                console.log( 'Client connected' );
+            }
 
             // Error
             // =====

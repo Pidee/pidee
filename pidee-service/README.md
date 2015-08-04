@@ -10,7 +10,7 @@
 You can likely skip step one if pidee has been install via the package manager.
 
 1. Run **pidee-service** with `sudo bin/pidee-service`
-2. In another session, try out **pidee-cli** with `bin/pidee-cli`
+2. In another terminal session, try running **pidee-cli** by `cd`ing into your Pidee folder, then the `pidee-service` folder and then run `bin/pidee-cli` 
 
 ## Examples
 
