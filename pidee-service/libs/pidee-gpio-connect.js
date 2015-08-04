@@ -175,7 +175,7 @@ function getDipState ( connect ) {
         .map( function ( idx ) {
             return wiringPi.digitalRead( dipPins[ idx ] );
         })
-        .map( function ( v ) { return v === 1 ? 0 : 1; } )
+        .map( function ( v ) { return v === 1 ? 1 : 0; } )
         .reduce( function ( acc, value, idx ) {
             var mask = 1 << idx;
             if ( value ) {
