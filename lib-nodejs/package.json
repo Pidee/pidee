@@ -1,0 +1,15 @@
+{
+  "name": "pidee",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "rc1",
+  "license": "MIT",
+  "dependencies": {
+    "baconjs": "^0.7.70",
+    "w-js": "^4.43.0"
+  }
+}
