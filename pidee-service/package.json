@@ -13,7 +13,6 @@
   "dependencies": {
     "baconjs": "^0.7.70",
     "commander": "2.8.1",
-    "w-js": "^4.43.0",
-    "wiring-pi": "git://github.com/nekuz0r/wiring-pi.git#a186b9ce0135ca"
+    "w-js": "^4.43.0"
   }
 }
