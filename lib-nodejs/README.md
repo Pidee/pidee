@@ -6,7 +6,7 @@ Requirements
 
 `pidee-sevice` needs to be running
 
-Exmaple Usage
+Example Usage
 =============
 
 ```JavaScript
