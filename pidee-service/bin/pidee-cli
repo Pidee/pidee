@@ -22,7 +22,7 @@ function print_domains {
     printf " │ Domains     │ Range   │\n"
     printf " │─────────────┼─────────│\n"
     printf " │ all         │         │\n"
-    printf " │ led         │ [0,8]   │\n"
+    printf " │ led         │ [0,7]   │\n"
     printf " │ led.yellow  │ [0,1]   │\n"
     printf " │ led.green   │ [0,1]   │\n"
     printf " │ led.red     │ [0,1]   │\n"
