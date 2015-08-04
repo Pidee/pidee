@@ -35,22 +35,26 @@ var net = require( 'net' );
 // ===========
 function Pidee () {
 
-    this.socketPath = '/tmp/pidee.sock';
+    this.socketUrl = '/tmp/pidee.sock';
 
+    var socketClient;
+    
     // State
     var state = {};
+
 
     // Flags
     var isOpen = false;
     var hasRequestedInitialData = false;
     var subscribeToken = 0;
+    
 
     // Self
     var self = this;
     
     // Method: Open
     // ------------
-    this.open = function  () {
+    this.open = function  ( callback ) {
 
         // Check not already open
         if ( isOpen ) {
@@ -58,20 +62,20 @@ function Pidee () {
         }
 
         // Create the socket connectio
-        var socketClient = net.createConnection( { path: pidee.socketUrl }, function () {
+        socketClient = net.createConnection( { path: self.socketUrl }, function () {
             console.log( 'Pidee Connected' );
 
             // Make an initial request
-            socketClient.write( [ makeToken( self ), 'GET', 'all'  ].join( ' ' ) );
+            socketClient.write( [ makeToken( self ), 'all', 'GET'  ].join( ' ' ) );
         });
 
-        socketClient.on( 'data', function ( data ) {
+        socketClient.on( 'data', doForEachLine( function ( dataStr ) {
 
-            var arr = data.toString( 'ascii' ).split( ' ' );
+            var arr = dataStr.split( ' ' );
 
             // Check the packet is valid
             if ( !getPacketIsValid( arr ) ) {
-                return self.trigger( 'error', 'Received invalid packet:' + arr.join( ' ' ) );
+                return self.emit( 'error', 'Received invalid packet: >>' + arr.join( ' ' ) + '<<' );
             }
 
             // Check for an error packet
@@ -84,11 +88,11 @@ function Pidee () {
                 }
 
                 // Trigger error
-                return self.trigger( 'error', err, getPacketErrorCode( arr ),  getPacketErrorMessage( arr ) );
+                return self.emit( 'error', err, getPacketErrorCode( arr ),  getPacketErrorMessage( arr ) );
             }
 
             // Set the state
-            if ( !getPacketIsDone( arr ) ) {
+            if ( !getPacketIsDonePacket( arr ) ) {
                 state[ getPacketDomain( arr ) ] = getPacketValue( arr );
             }
 
@@ -98,17 +102,20 @@ function Pidee () {
                 // Subscribe
                 hasRequestedInitialData = true;
                 subscribeToken = makeToken( self );
-                socketClient.write( [ subscribeToken, 'SUBSCRIBE', 'all'  ].join( ' ' ) );
+                socketClient.write( [ subscribeToken, 'all', 'SUBSCRIBE'  ].join( ' ' ) );
+                if ( typeof callback === 'function' ) {
+                    callback();
+                }
                 // Finsh up
                 return;
             }
 
             // Trigger the domain
             if ( getPacketToken( arr ) === subscribeToken && !getPacketIsDonePacket( arr ) ) {
-                self.trigger( getPacketDomain( arr ), getPacketValue( arr ) );
-                self.trigger( 'all', getPacketDomain( arr ), getPacketValue( arr ) );
+                self.emit( getPacketDomain( arr ), getPacketValue( arr ) );
+                self.emit( 'all', getPacketDomain( arr ), getPacketValue( arr ) );
             }
-        });
+        }));
 
     };
     
@@ -123,7 +130,7 @@ function Pidee () {
     // Method: Set
     // -----------
     this.set = function ( domain, value ) {
-        socketClient.write( [ makeToken( self ), 'SET', domain, value  ].join( ' ' ) );
+        socketClient.write( [ makeToken( self ), domain, 'SET', value  ].join( ' ' ) );
     };
 
 }
@@ -132,8 +139,27 @@ function Pidee () {
 // ------
 util.inherits( Pidee, EventEmitter );
 
+Pidee.subscribeTokenCounter = 0;
+Pidee.ON = 1;
+Pidee.OFF = 0;
+
 // Utils
 // =====
+
+// Function
+// --------
+function  doForEachLine( fn ) {
+    return function ( data ) {
+        data.toString( 'ascii' ).split( '\n' ).filter( function ( line ) { return line !== ''; } ).forEach( fn );
+    };
+}
+
+// Array
+// -----
+
+function rest ( arr, n ) {
+    return arr.splice( n || 1 );
+}
 
 // Packet
 // ------
@@ -151,16 +177,20 @@ function getPacketErrorCode ( arr ) {
 }
 
 function getPacketErrorMessage ( arr ) {
-    return ( arr[ 0 ] === 'ERROR' ) ?  W.rest( arr, 2 ).join( ' ' ) : W.rest( arr, 3 ).join( ' ' ); 
+    return ( arr[ 0 ] === 'ERROR' ) ?  rest( arr, 2 ).join( ' ' ) : rest( arr, 3 ).join( ' ' ); 
 }
 
 function getPacketIsValid ( arr ) {
-    if ( arr.length < 2 || arr.length > 4 ) {
+    if ( arr.length < 2 ) {
         return false;
+    }
+    if ( arr.length > 4 && ( arr[ 0 ] === 'ERROR' || arr[ 1 ] ==='ERROR' ) ) {
+        return true;
     }
     if ( arr.length == 2 && arr[ 1 ] === 'DONE' ) {
         return true;
     }
+    return true;
 }
 
 function getPacketToken ( arr ) {
@@ -172,11 +202,11 @@ function getPacketDomain ( arr ) {
 }
 
 function getPacketValue ( arr ) {
-    return arr[ 2 ];s
+    return arr[ 2 ];
 }
 
 function makeToken ( pidee ) {
-    return '#' + ( ++pidee.tokenCounter );
+    return '#' + ( ++Pidee.subscribeTokenCounter );
 } 
 
 // Export
