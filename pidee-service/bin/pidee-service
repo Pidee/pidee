@@ -238,7 +238,7 @@ function makeServer ( service ) {
                 });
 
             // #### Specific Led
-            [ 'yellow', 'green', 'red' ]
+            [ 'yellow', 'red', 'green' ]
                 .forEach( function ( subdomain, idx ) {
                     setStream
                         .filter( W.partial( isDomain, 'led.' + subdomain ) )
