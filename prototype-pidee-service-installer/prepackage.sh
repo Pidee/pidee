@@ -41,7 +41,7 @@ function error_exit {
 	hash md2man-roff 2>/dev/null || { printf >&2 "Ruby gem \"md2man\" is required, but it's not installed. Aborting. Please run:\n$ gem install md2man\n"; exit 1; }
 
 	## Set the pidee service dir to argument or default
-	pidee_source_dir="$this_script_dir/../prototype-pidee-service"
+	pidee_source_dir="$this_script_dir/../pidee-service"
 
 	## Update node modules
 	## https://docs.npmjs.com/cli/prune
@@ -71,6 +71,7 @@ function error_exit {
 	mkdir -p $temp_dir/var/lib/pidee
 
 	## Copy Pidee source files to /usr/lib/pidee/pidee
+	## /usr/lib/pidee/bin/pidee-cli should be symlinked in postinst step
 	>&2 echo "—— Copying source files…"
 	cp -r $pidee_source_dir/* $temp_dir/usr/lib/pidee/pidee
 	pushd $temp_dir
@@ -84,9 +85,7 @@ function error_exit {
 
 	## Copy proxy bin(s) to destination
 	>&2 echo "—— Copying proxy binaries…"
-	cp -r $this_script_dir/assets/pidee-cli-proxy.js $temp_dir/usr/bin/pidee
 	cp -r $this_script_dir/assets/pidee-service-proxy.js $temp_dir/usr/sbin/pidee-service
-	chmod +x $temp_dir/usr/bin/pidee
 	chmod +x $temp_dir/usr/sbin/pidee-service
 
 	## Copy init and service scripts to destination (isntall scripts will symlink later into canonical paths)
@@ -97,6 +96,7 @@ function error_exit {
 
 	## Copy README.md to /usr/doc/pidee/README.md
 	>&2 echo "—— Copying docs…"
+	cp -r $temp_dir/usr/lib/pidee/pidee/Protocol* $temp_dir/usr/share/doc/pidee
 	cp -r $temp_dir/usr/lib/pidee/pidee/README* $temp_dir/usr/share/doc/pidee
 
 	## Create man pages

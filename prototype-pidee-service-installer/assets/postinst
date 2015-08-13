@@ -35,7 +35,8 @@ case "$1" in
             --group \
             --no-create-home \
             --quiet \
-            pidee
+            pidee \
+            2> /dev/null
 
         ## Below two methods to sniff for systemd being in use
         ## 1 = good
@@ -43,7 +44,11 @@ case "$1" in
         ## these are /dev/null'd because if nothing matches then we have a bad return code and the install fails
         grep_systemd=$(sudo stat /proc/1/exe | grep -cim1 systemd) &> /dev/null
         pidof_systemd=$(pidof systemd && echo 1 || echo 0) &> /dev/null
-        
+
+        # Everyone needs this
+        # Symlink pidee-cli to /usr/bin
+        ln -sf /usr/lib/pidee/pidee/bin/pidee-cli /usr/bin/pidee
+
         # Check if we have systemd
         if [ "$grep_systemd" = "1" ] || [ "$pidof_systemd" = "1" ]; then
             # TODO: should we check for [ hash systemctl 2> /dev/null ] first?
@@ -58,6 +63,11 @@ case "$1" in
             # Enable the service
             systemctl enable pidee
 
+            # Not great to wait for libwiringPi to compile at every install…
+            pushd /usr/lib/pidee/pidee
+            npm install --silent
+            popd
+
             # Start it
             systemctl restart pidee
         # Or use System 5 init
@@ -70,6 +80,11 @@ case "$1" in
             
             # Add to boot rc.d and silence errors (and stdout) if already installed
             update-rc.d pidee defaults 2> /dev/null
+
+            # Not great to wait for libwiringPi to compile at every install…
+            pushd /usr/lib/pidee/pidee
+            npm install --silent
+            popd
 
             # Start the daemon
             service pidee restart

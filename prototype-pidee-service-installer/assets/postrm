@@ -41,6 +41,14 @@ case "$1" in
                 # Symlink pidee.service to /etc/systemd/system/pidee.service
                 rm -f /etc/systemd/system/pidee.service
 
+                # The configuration file is intentionally left in its /etc/pidee dir
+
+                # Remove the symlink to pidee-cli in /usr/bin/pidee
+                rm -f /usr/bin/pidee
+
+                # Remove the pidee user
+                userdel pidee 2> /dev/null
+
                 exit 0
             fi
 
@@ -54,6 +62,9 @@ case "$1" in
 
                 # Remove symlink /etc/init.d/pidee
                 rm -f /etc/init.d/pidee
+
+                # Remove the pidee user
+                userdel pidee 2> /dev/null
 
                 exit 0
             fi
