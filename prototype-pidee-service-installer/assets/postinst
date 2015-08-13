@@ -64,9 +64,8 @@ case "$1" in
             systemctl enable pidee
 
             # Not great to wait for libwiringPi to compile at every install…
-            pushd /usr/lib/pidee/pidee
-            npm install --silent
-            popd
+            cd /usr/lib/pidee/pidee
+            /usr/lib/pidee/node/bin/npm install --silent
 
             # Start it
             systemctl restart pidee
@@ -82,9 +81,8 @@ case "$1" in
             update-rc.d pidee defaults 2> /dev/null
 
             # Not great to wait for libwiringPi to compile at every install…
-            pushd /usr/lib/pidee/pidee
-            npm install --silent
-            popd
+            cd /usr/lib/pidee/pidee
+            /usr/lib/pidee/node/bin/npm install --silent
 
             # Start the daemon
             service pidee restart
