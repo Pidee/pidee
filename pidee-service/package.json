@@ -11,8 +11,9 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "dependencies": {
-    "baconjs": "^0.7.70",
+    "baconjs": "0.7.71",
     "commander": "2.8.1",
-    "w-js": "^4.43.0"
+    "wiring-pi": "2.1.0",
+    "w-js": "4.43.0"
   }
 }
