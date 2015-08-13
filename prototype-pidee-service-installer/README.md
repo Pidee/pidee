@@ -57,7 +57,7 @@ Replace `pidee_VERSION_armhf` with an actual version number. For example `pidee_
 ## Updating pidee
 
 ```shell
-apt-get install --only-upgrade pidee
+sudo apt-get install --only-upgrade pidee
 ```
 
 ## Installation directories
