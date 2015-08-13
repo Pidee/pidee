@@ -54,6 +54,12 @@ $ sudo dpkg -i ./pidee_VERSION_armhf.deb
 
 Replace `pidee_VERSION_armhf` with an actual version number. For example `pidee_1.0.0_armhf` or whatever is the latest.
 
+## Updating pidee
+
+```shell
+apt-get install --only-upgrade pidee
+```
+
 ## Installation directories
 
 For the curious, the software will be installed into the directory tree below.
