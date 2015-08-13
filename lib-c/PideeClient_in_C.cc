@@ -93,12 +93,12 @@ void sendMessage( char* str ){
 */
 bool processArguments( int argc, char *argv[] ){
     if( argc > 1 ){
-        printf("ARGUMENTS [%i]\n",argc);
+        // printf("ARGUMENTS [%i]\n",argc);
         char argsStr[100];
         memset(argsStr, '\0', 100);
         // argsStr[100] = '\0';
         for (int n = 1; n < argc; n++){
-            printf(" ARG[%i] >>  %s\n",n,argv[ n ]);
+            // printf(" ARG[%i] >>  %s\n",n,argv[ n ]);
             sprintf(argsStr,"%s%s ",argsStr,argv[ n ]);
         }
         sendMessage( argsStr );
@@ -110,6 +110,7 @@ bool processArguments( int argc, char *argv[] ){
 
         return false;
     }
+    printf("\n P I D E E \n\nSmall little cpp example to show how to connect to the pidee-service.\nUsage:\nAdd arguments to communicate straight with the service for example:\n <./PideeClient_in_C led.yellow SET 1>.\n\nNo arguments will open a command line input. Just type in commands for example:\n<led.yellow SET 1>\n\n");
     return true;    
 }
 
@@ -177,16 +178,16 @@ int main(int argc, char *argv[])
     // usleep(100000); 
 
 
-    sprintf(str,"all SUBSCRIBE");
-    sendMessage( str );
+    // sprintf(str,"all SUBSCRIBE");
+    // sendMessage( str );
 
     while( listenToInput ) {
 
         listenLoop();       // listen to the latest input via the socket
         usleep(100000);     // wait for a mini while
 
-        // inputLoop();        // wait for input ending with a return
-        // usleep(500000);     // wait for a while to make sure all receiving messages arrived
+        inputLoop();        // wait for input ending with a return
+        usleep(500000);     // wait for a while to make sure all receiving messages arrived
 
     }
 
