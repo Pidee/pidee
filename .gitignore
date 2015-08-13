@@ -3,3 +3,7 @@ script-*
 *.dip~
 *.dch~
 ~$*.xlsx
+
+# osx shit
+._.DS_Store
+.DS_Store
