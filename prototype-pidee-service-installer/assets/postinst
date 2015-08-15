@@ -66,7 +66,7 @@ case "$1" in
             # Not great to wait for libwiringPi to compile at every install…
             cd /usr/lib/pidee/pidee
             export NODE_PATH="/usr/lib/pidee/node/lib/node_modules/npm/node_modules:$NODE_PATH"
-            /usr/lib/pidee/node/bin/npm install --silent
+            /usr/lib/pidee/node/bin/npm install
 
             # Start it
             systemctl restart pidee
@@ -84,7 +84,7 @@ case "$1" in
             # Not great to wait for libwiringPi to compile at every install…
             cd /usr/lib/pidee/pidee
             export NODE_PATH="/usr/lib/pidee/node/lib/node_modules/npm/node_modules:$NODE_PATH"
-            /usr/lib/pidee/node/bin/npm install --silent
+            /usr/lib/pidee/node/bin/npm install
 
             # Start the daemon
             service pidee restart
