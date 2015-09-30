@@ -1,0 +1,209 @@
+#!/usr/bin/env node
+
+// Pidee Scratch
+// =============
+// Client which connects to Scratch
+
+// Modules
+// =======
+
+var W = require( 'w-js' );
+var net = require( 'net' );
+var PideeUtils = require( '../libs/pidee-utils' );
+var Bacon = require( 'baconjs' );
+var Pidee = require( 'pidee' );
+
+// Make & Init
+// ===========
+
+var makeScratch = function () {
+    return {
+        sratchPort: 42001,
+        reconnectAfter: 3000
+    };
+};
+
+var initScratch = W.composePromisers( makePidee, keepTryingToConnectToScratch );
+
+initScratch( makeScratch() )
+    .error( function ( err ) {
+        PideeUtils.report( 'Error', 'Failed to create Pidee scratch remote sensor.', err );
+        throw err;
+    })
+    .success( function ( initScratch ) {
+        PideeUtils.report( 'OK', 'Pidee remote sensor Created' );
+    });
+
+// Promisers
+// =========
+
+function makePidee ( scratch ) {
+    return W.promise( function ( resolve, reject ) {
+        scratch.pidee = new Pidee();
+        scratch.pidee.on( 'error', function ( err, code, message ) {
+            console.log( 'Pidee error:', err );
+            console.log( 'Pidee error code:', code );
+            console.log( 'Pidee error message:', message );
+        });
+        scratch.pidee.open( function () {
+            resolve( scratch );
+        });
+    });
+}
+
+function keepTryingToConnectToScratch ( scratch ) {
+    return W.promise( function ( resolve, reject ) {
+
+        (function connect () {
+
+            PideeUtils.report( 'CONNECTING', 'Connecting to scratch' );
+
+            scratch.scratchClient = null;
+
+            scratch.scratchClient = net.createConnection( scratch.sratchPort, function() {
+                PideeUtils.report( 'OK', 'Connecting to scratch' );
+            });
+
+            var dataStream = Bacon.fromEvent( scratch.scratchClient, 'data' );
+            
+            dataStream = dataStream
+                .map( function ( data ) { return data.toString(); } )
+                .map( function ( data ) { return data.toString().split( ' ' ).map( function ( item ) { return item.replace( '"', '' ).replace( '"', '' ); } ); })
+                .filter( function ( data ) { return data.length >= 3; } );
+
+            dataStream
+                .filter( function ( data ) { return [ 'red', 'yellow', 'green' ].indexOf( data[ 1 ] ) > -1; } )
+                .onValue( function ( data ) {
+                    scratch.pidee.set( 'led.' + data[ 1 ], data[ 2 ] );
+                });
+
+            scratch.scratchClient.on( 'error', function ( err ) {
+                PideeUtils.report( 'ERROR', 'Error with connection to scratch' );
+                console.error( err );
+            });
+
+            scratch.scratchClient.on( 'close', function ( hadError ) {
+                PideeUtils.report( 'CLOSED', 'Connection ', hadError ? 'with error' : 'without error', 'to scratch' );
+                if ( hadError ) {
+                    setTimeout( connect, scratch.reconnectAfter );
+                }
+            });
+            
+        }());
+        
+        resolve( scratch );
+    });
+}
+
+
+/* Notes:
+
+ // If something goes wrong while using this code,
+// such as system crashes and/or memory leaks,
+// the Scratch Wiki is not responsible.
+// Use this code at your own risk.
+
+#import "ScratchConnectAppDelegate.h"
+
+@implementation ScratchConnectAppDelegate
+
+@synthesize window;
+
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+	outputstr = [[NSOutputStream alloc] initToMemory];// Output stream
+	inputstr = [NSInputStream alloc];// Input stream
+}
+-(IBAction)connect:(id)sender {// Connect to Scratch
+	NSHost *host = [NSHost hostWithAddress:[ip stringValue]];// Get a host from our given IP address
+	NSLog(@"Connecting...");
+	[NSStream getStreamsToHost:host port:42001 inputStream:&inputstr outputStream:&outputstr];// Set up streams to port 42001 (Scratch) on our IP
+	[outputstr scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];// Initialize output stream
+	[outputstr setDelegate:self];
+	[outputstr open];
+	
+	[inputstr scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];// Initialize input stream
+	[inputstr setDelegate:self];
+	[inputstr open];
+	[status setStringValue:@"Connected!"];// Set status to connected
+}
+-(IBAction)broadcast:(id)sender {// Send a string message to Scratch
+	if ([outputstr streamStatus] == 2) {// If our stream is open...
+		
+		NSData *myData = [[NSString stringWithString:[message stringValue]] dataUsingEncoding:NSASCIIStringEncoding];// Get NSData from message
+		NSMutableData *toSend;// What we will transfer
+		Byte *toAppend = (Byte*)malloc(4);// Size of message
+		
+		toAppend[0]=(([myData length] >> 24) & 0xFF);// Construct size from myData's size
+		toAppend[1]=(([myData length] >> 16) & 0xFF);
+		toAppend[2]=(([myData length] >> 8) & 0xFF);
+		toAppend[3]=([myData length] & 0xFF);
+		
+		toSend = [NSMutableData dataWithBytes:toAppend length:4];// Append size to data
+		[toSend appendData:myData];// Append string to data
+		
+		const uint8_t *bytes = (const uint8_t*)[toSend bytes];// Get bytes
+		
+		NSLog(@"%d bytes were sent.", [outputstr write:bytes maxLength:[toSend length]]);//Send it!
+	}
+	else {// Shut stream, error occurs
+		NSBeep();
+		[status setStringValue:@"Oops! Not connected."];
+	}
+}
+-(void)dealloc {// Free up stream memory
+	[outputstr close];
+	[outputstr release];
+	outputstr = nil;
+	
+	[inputstr close];
+	[inputstr release];
+	inputstr = nil;
+	
+	[super dealloc];
+}
+
+- (void) stream: (NSStream *) stream handleEvent: (NSStreamEvent) eventCode
+{// Event handler
+	NSLog(@"Event %d occurred:", eventCode);
+	if (eventCode == NSStreamEventErrorOccurred) {// Error!
+		NSLog(@"Error!");
+		[status setStringValue:@"Oops! A connection error!"];
+	}
+	if (eventCode == NSStreamEventEndEncountered) {// Data transfer complete
+		NSLog(@"End of transfer...");
+	}
+	if (eventCode == NSStreamEventHasSpaceAvailable) {// Space available
+		NSLog(@"Space left...");
+	}
+	if (eventCode == NSStreamEventOpenCompleted) {// Stream opened
+		NSLog(@"Opened...");
+		
+	}
+	if (eventCode == NSStreamEventHasBytesAvailable) {// Message received
+		[status setStringValue:@"Message received!"];
+		
+		uint8_t buffer[1024];// To read into
+		uint8_t rec[1024];// Message received
+		NSMutableData *data = [[NSMutableData alloc] init];
+		
+		int length = [stream read:buffer maxLength:1024];// Read data received into buffer
+		if (!length) {// Error!
+			NSLog(@"No data");
+			[status setStringValue:@"Message received, but could not be read."];
+		}
+		else {
+			[data appendBytes:buffer length:length];// Append received bytes to data
+		}
+		[data getBytes:rec range:NSMakeRange(3, [data length]-3)];// Read bytes into rec (ie get rid of size prefix)
+		data = [NSData dataWithBytes:rec length:length-3];// Read rec back into data
+		NSString *messRec = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];// Get string from Data
+		[status setStringValue:messRec];// Set status value
+		[data release];// Free up memory
+		[messRec release];
+		data = nil;
+		messRec = nil;
+	}
+}
+@end
+
+ */
