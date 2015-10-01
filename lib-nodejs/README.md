@@ -4,11 +4,11 @@ Pidee Node.js Module
 Requirements
 ============
 
-`pidee-service` needs to be installed and running on the Raspberry Pi.
+If you have not do so already, `pidee-service` needs to be installed and running on the Raspberry Pi.
 
-### Installing Pidee Service
+### Installing pidee-service
 
-To install and run `pidee-service` ssh into your Raspberry Pi and run the following commands:
+To install and run `pidee-service` first ssh into your Raspberry Pi then run the following commands:
 
 ```Bash
 sudo echo "deb http://pidee.theworkers.net/raspbian wheezy main" >> /etc/apt/sources.list
