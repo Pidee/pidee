@@ -16,9 +16,10 @@ sudo apt-get install pidee
 How to use
 ==========
 
-Get the latest pidee node module from npm and add it to you project with the following:
-
 `npm install pidee`
+
+Adds the node pidee module from npm to your project.
+
 
 API
 ===
@@ -31,6 +32,7 @@ Example:
 pidee.on( 'bottom', function ( value ) {
     // Button has changed
 });
+```
 
 __pidee.get( domain )__  
 Returns a value on the pidee board. The domain can be: `'dip'`, `'button'`, `'dip.1'`, `'dip.2'` etc. See domains below for a full list.
