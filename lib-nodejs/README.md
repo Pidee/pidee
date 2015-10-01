@@ -25,7 +25,7 @@ API
 ===
 
 ###  pidee.on( domain, callback )
-Listen for pidee change events. The domain can be: `'dip'`, `'button'`, `'dip.1'`, `'dip.2'`. See domains below for a full list.
+Listen for pidee change events. The domain can be: `'dip'`, `'button'`, `'dip.1'`, `'dip.2'`. See [domains](#domains) for full list.
 
 Example:  
 ```
@@ -35,19 +35,19 @@ pidee.on( 'bottom', function ( value ) {
 ```
 
 ### pidee.get( domain )
-Returns a value on the pidee board. The domain can be: `'dip'`, `'button'`, `'dip.1'`, `'dip.2'` etc. See domains below for a full list.
+Returns a value on the pidee board. The domain can be: `'dip'`, `'button'`, `'dip.1'`, `'dip.2'` etc. See [domains](#domains) for full list.
 
 Example:  
 `var value = pidee.get( 'dip.1' ) // return 0 or 1`
 
 ### pidee.set( domain, value )
-Sets the value of the leds. The domain can be: `'led.yellow'`, `'led.green'`, `'led.blue'`. See domains below for a full list.
+Sets the value of the leds. The domain can be: `'led.yellow'`, `'led.green'`, `'led.blue'`. See [domains](#domains) for full list.
 
 Example:  
 `var value = pidee.get( 'led.yellow', true );
 
 ### pidee.on( 'error', callback )
-Listen to error events. The callback function should be in the form: `function ( err, errorCode, message )`
+Listen to error events. The callback function should be in the form: `function ( err, errorCode, message )`. Without this errors will be thrown.
 
 Example:
 ```
