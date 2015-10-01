@@ -6,8 +6,7 @@ Requirements
 
 `pidee-service` needs to be installed and running on the Raspberry Pi.
 
-Installing Pidee Service
-------------------------
+### Installing Pidee Service
 
 To install and run `pidee-service` ssh into your Raspberry Pi and run the following commands:
 
