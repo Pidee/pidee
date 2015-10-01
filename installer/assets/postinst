@@ -47,7 +47,7 @@ case "$1" in
 
         # Everyone needs this
         # Symlink pidee-cli to /usr/bin
-        ln -sf /usr/lib/pidee/pidee/bin/pidee-cli /usr/bin/pidee
+        ln -sf /usr/lib/pidee/pidee/bin/pidee-cli /usr/bin/pidee-cli
 
         # Check if we have systemd
         if [ "$grep_systemd" = "1" ] || [ "$pidof_systemd" = "1" ]; then

@@ -44,7 +44,7 @@ case "$1" in
                 # The configuration file is intentionally left in its /etc/pidee dir
 
                 # Remove the symlink to pidee-cli in /usr/bin/pidee
-                rm -f /usr/bin/pidee
+                rm -f /usr/bin/pidee-cli
 
                 # Remove the pidee user
                 userdel pidee 2> /dev/null
