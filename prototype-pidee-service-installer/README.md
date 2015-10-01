@@ -89,7 +89,6 @@ For the curious, the software will be installed into the directory tree below.
 │   │       ├── pidee/
 │   │       │   ├── README.md
 │   │       │   ├── bin/
-│   │       │   ├── conf/
 │   │       │   ├── libs/
 │   │       │   ├── man/
 │   │       │   ├── node_modules/

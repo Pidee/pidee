@@ -55,7 +55,6 @@ case "$1" in
 
             # Symlink pidee.service to /etc/systemd/system/pidee.service
             ln -sf /usr/lib/pidee/pidee.service /etc/systemd/system/pidee.service
-            ln -sf /usr/lib/pidee/pidee/conf/pidee.conf /etc/pidee/pidee.conf
 
             # Reload configs
             systemctl daemon-reload

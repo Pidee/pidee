@@ -79,10 +79,6 @@ function error_exit {
 	find . -name ".DS_Store" -print0 | xargs -0 rm -f
 	popd
 
-	## Copy default configuration file
-	>&2 echo "—— Copying default configuraton files…"
-	cp -r $temp_dir/usr/lib/pidee/pidee/conf/* $temp_dir/etc/pidee
-
 	## Copy proxy bin(s) to destination
 	>&2 echo "—— Copying proxy binaries…"
 	cp -r $this_script_dir/assets/pidee-service-proxy.js $temp_dir/usr/sbin/pidee-service
