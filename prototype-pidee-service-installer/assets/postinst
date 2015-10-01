@@ -63,10 +63,14 @@ case "$1" in
             # Enable the service
             systemctl enable pidee
 
+            # Fix npm symlink as it's lost in tar-untar
+            cd /usr/lib/pidee/node/bin
+            rm -f npm
+            ln -sf ../lib/node_modules/npm/bin/npm-cli.js /usr/lib/pidee/node/bin/npm
+
             # Not great to wait for libwiringPi to compile at every install…
             cd /usr/lib/pidee/pidee
-            export NODE_PATH="/usr/lib/pidee/node/lib/node_modules/npm/node_modules:$NODE_PATH"
-            /usr/lib/pidee/node/bin/npm install
+            /usr/lib/pidee/node/bin/npm install --silent
 
             # Start it
             systemctl restart pidee
@@ -81,10 +85,14 @@ case "$1" in
             # Add to boot rc.d and silence errors (and stdout) if already installed
             update-rc.d pidee defaults 2> /dev/null
 
+            # Fix npm symlink as it's lost in tar-untar
+            cd /usr/lib/pidee/node/bin
+            rm -f npm
+            ln -sf ../lib/node_modules/npm/bin/npm-cli.js /usr/lib/pidee/node/bin/npm
+
             # Not great to wait for libwiringPi to compile at every install…
             cd /usr/lib/pidee/pidee
-            export NODE_PATH="/usr/lib/pidee/node/lib/node_modules/npm/node_modules:$NODE_PATH"
-            /usr/lib/pidee/node/bin/npm install
+            /usr/lib/pidee/node/bin/npm install --silent
 
             # Start the daemon
             service pidee restart
