@@ -4,10 +4,61 @@ Pidee Node.js Module
 Requirements
 ============
 
-`pidee-sevice` needs to be running
+`pidee-service` needs to be installed and running on the Raspberry Pi. To install and run `pidee-service` ssh into your Raspberry Pi and run the following commands:
 
-Example Usage
-=============
+```Bash
+sudo echo "deb http://pidee.theworkers.net/raspbian wheezy main" >> /etc/apt/sources.list
+wget -qO - http://pidee.theworkers.net/pidee.public.key | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install pidee
+```
+
+How to use
+==========
+
+Get the latest pidee node module from npm and add it to you project with the following:
+
+`npm install pidee`
+
+API
+===
+
+__pidee.on( domain, callback )__  
+Listen for pidee change events. The domain can be: `'dip'`, `'button'`, `'dip.1'`, `'dip.2'`. See domains below for a full list.
+
+Example:  
+```
+pidee.on( 'bottom', function ( value ) {
+    // Button has changed
+});
+
+__pidee.get( domain )__  
+Returns a value on the pidee board. The domain can be: `'dip'`, `'button'`, `'dip.1'`, `'dip.2'` etc. See domains below for a full list.
+
+Example:  
+`var value = pidee.get( 'dip.1' ) // return 0 or 1`
+
+__pidee.set( domain, value )__  
+Sets the value of the leds. The domain can be: `'led.yellow'`, `'led.green'`, `'led.blue'`. See domains below for a full list.
+
+Example:  
+`var value = pidee.get( 'led.yellow', true );
+
+__pidee.on( 'error', callback )__  
+Listen to error events. The callback function should be in the form: `function ( err, errorCode, message )`
+
+Example:
+```
+pidee.on( 'error', function ( err, errorCode, message ) {
+    console.log( 'Pidee error:', err );
+    console.log( 'Pidee error code:', code );
+    console.log( 'Pidee error message:', message );
+});
+```
+
+
+Example
+=======
 
 ```JavaScript
 
@@ -27,7 +78,7 @@ pidee.open( function () {
     pidee.set( 'led.yellow', Pidee.ON );
 
     // Get the dip value
-    console.log( 'Pidee dip value is', pidee.get( 'dip' ) );
+    var value = pidee.get( 'dip' );
 
     // Listen for button presses
     pidee.on( 'button', function ( value ) {
@@ -35,5 +86,32 @@ pidee.open( function () {
     });
 
 });
-
 ```
+
+Domains
+=======
+
+| Domain          | Value Range | 
+|-----------------|:-----------:|
+| _all_           |             |
+| __led__         | [0,7]       |
+| __led.yellow__  | [0,1]       |
+| __led.green__   | [0,1]       |
+| __led.red__     | [0,1]       |
+| __dip__         | [0,255]     |
+| __dip.0__       | [0,1]       |
+| __dip.1__       | [0,1]       |
+| __dip.2__       | [0,1]       |
+| __dip.3__       | [0,1]       |
+| __dip.4__       | [0,1]       |
+| __dip.5__       | [0,1]       |
+| __dip.6__       | [0,1]       |
+| __dip.7__       | [0,1]       |
+| __button__      | [0,1]       |
+
+| Domain  | GET      | SET      | ON            |
+|---------|:--------:|:--------:|:-------------:|
+| led     |          | &#x2713; |               | 
+| dip     | &#x2713; |          | &#x2713;      | 
+| button  | &#x2713; |          | &#x2713;      | 
+| _all_   | &#x2713; |          | &#x2713;      | 
