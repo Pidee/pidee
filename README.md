@@ -40,7 +40,7 @@ Almost anything can be done with the Raspberry Pi GPIO. But again and again, we 
 
 You may be creating an installation with hunderds of Raspberry Pis and need to give them all a unique ID. Or you may need to boot a different program when you use your Raspberry Pi in a greenhouse to when you use it in school. Or you might want to enable a debug mode. Or maybe you just want a button to shutdown a Raspberry Pi cleanly? Oh wait... of course you do that anyway!
 
-With this in mind we wanted to make something cheap. We can have it kicking around or buy in multiples. Something robust. We could use it at home, at work and avoid breadboard botched jobs. Something simple. So kids in schools can jump in and use GPIO right away. Something safe. Set an input to an output and not fry the Pi. This is why made the Pidee board and we hope you like it too. 
+With this in mind we wanted to make something cheap. We can have it kicking around or buy in multiples. Something robust. We could use it at home, at work and avoid breadboard botched jobs. Something simple. So kids in schools can jump in and program with the GPIO right away. Something safe. Set an input to an output and not fry the Pi. This is why made the Pidee board and we hope you like it too. 
 
 ## Who makes a Pidee? ##
 
