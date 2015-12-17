@@ -19,7 +19,7 @@ Here are some ideas:
 - The switch
     - Run different applications at startup
     - Boot into the desktop or command line
-    - Switch modes
+    - Switch to debug mode
     - Identify multiple Raspberry Pi
     - Have secret pin code to boot the Pi
     - Leave the keyboard and use the switches
