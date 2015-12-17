@@ -36,7 +36,7 @@ Here are some ideas:
 
 We wanted to make a cheap-as-possible, robust and readily available human interface for everyone.
 
-Almost anything can be done with the Raspberry Pi GPIO. But again and again, we find ourselves wishing there was a switch, a button or a light to blink attached. This could save you plugging in a monitor, bringing a keyboard, opening up a terminal or going hunting for the IP address.
+Almost anything can be done with the Raspberry Pi GPIO. But again and again, we find ourselves wishing we had to hand a switch, a button or a light to blink. This could save you plugging in a monitor, bringing a keyboard, opening up a terminal or going hunting for the IP address.
 
 You may be creating an installation with hunderds of Raspberry Pis and need to give them all a unique ID. Or you may need to boot a different program when you use your Raspberry Pi in a greenhouse to when you use it in school. Or you might want to enable a debug mode. Or maybe you just want a button to shutdown a Raspberry Pi cleanly? Oh wait... of course you do that anyway!
 
